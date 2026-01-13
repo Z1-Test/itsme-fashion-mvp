@@ -1,0 +1,41 @@
+name: Bug 🐞
+description: Unexpected problem or behavior (Traceable to a Feature)
+title: "Bug: [Description] (Ref: Feature #[ID])"
+type: "Bug 🐞"
+projects: ["StaytunedLLP/43"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🚀 **Speed Leads, Ship Every Day.**
+        _Link this bug to the original Feature Blueprint for context._
+
+  - type: textarea
+    attributes:
+      label: Bug Report (AI Prompt)
+      value: |
+        ## 1. Context & Blueprint
+        *   **Original Feature:** Feature #[ID]
+        *   **Failing Component:** [e.g., Story 2, Scenario 2.1]
+
+        ## 2. The Failure
+        *   **Observed Behavior (The Bug):**
+            *   [What is happening now?]
+        *   **Expected Behavior (The Fix):**
+            *   [What SHOULD happen according to the scenario?]
+
+        ## 3. Replication Steps (Given/When/Then)
+        *   **Given** [State from original Scenario]
+        *   **When** [Action that triggers bug]
+        *   **Then** [The incorrect outcome]
+
+        ## 4. Technical Scope (The "Where")
+        *(Copy directly from the 'Relevant Files' section of the original Feature Blueprint)*
+
+        ## 5. Definition of Done
+        - [ ] The bug is fixed in the code.
+        - [ ] A regression test is added to the Test Files.
+        - [ ] **Documentation Update:** The original Feature Blueprint (Markdown/Issue) has been updated with `[Fixed in Bug #[ID]]`.
+    validations:
+      required: true
