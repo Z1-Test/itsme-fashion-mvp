@@ -96,7 +96,7 @@ These barriers lead to:
 | ------------------------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Conscious Consumer**   | Age 25-45, values sustainability and ethics, research-oriented             | Discover verified clean-beauty products, make informed decisions based on ingredients/ethics   | Browse by ethical filters, read detailed product info, save favorites, complete secure purchases     |
 | **Loyal Shopper**        | Existing customer, repeat purchaser, convenience-focused                   | Quick reordering, seamless checkout, order tracking                                             | Fast cart management, one-click reorder, persistent wishlist, order history tracking                 |
-| **First-Time Visitor**   | Discovering the brand, comparison shopping, needs trust signals            | Explore catalog, verify brand claims, test purchase experience                                  | Search products, filter by category/ethics, read ingredients, try checkout flow                      |
+| **First-Time Visitor**   | Discovering the brand, comparison shopping, needs trust signals            | Explore catalog, verify brand claims, test purchase experience                                  | Filter products by category/ethics, read ingredients, try checkout flow                      |
 
 ---
 
