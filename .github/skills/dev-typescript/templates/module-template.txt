@@ -1,0 +1,36 @@
+# staystack-ts TypeScript module template
+
+# Purpose
+Describe the pure function(s) and data structures; identify which staybase primitives you reuse.
+
+# Imports (ordered with .js extensions for relatives)
+# import { something } from "node:crypto"
+# import type { Foo } from "@staytunedllp/staybase/foo"
+# import { helper } from "./helper.js"
+
+# Types
+# - Use type aliases, readonly fields, discriminated unions.
+# - Avoid enums and interfaces (except when extending third-party types).
+
+# Functions
+# - Pure functions only; no classes/this/new.
+# - Model fallible paths with Result or Task; no throw/try.
+# - No loops or mutation; use map/filter/reduce and immutable updates.
+# - Explicit return types on every function.
+
+# Validation
+# - Parse-Don't-Validate: convert unknown to typed data with strict guards.
+# - Distinguish null vs undefined; avoid implicit boolean coercion.
+
+# Performance
+# - Avoid O(N^2) patterns; prefer push-based accumulation then spread once.
+# - Use UTC date/time methods.
+
+# Security
+# - No dynamic property access on untrusted keys; whitelist instead.
+# - No eval or Function constructors; avoid non-literal fs paths.
+
+# Testing and checks
+# - npm run build
+# - npm run lint
+# - npm run format:check
