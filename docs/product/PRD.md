@@ -142,7 +142,7 @@ All domain terms **must be defined once and reused consistently**.
 * **Session Persistence** — Maintaining user state (cart, authentication) across browser sessions; Firebase handles token refresh automatically (sessions never expire)
 * **Payment Simulation** — Internal logic mimicking payment gateway behavior without external SDK integration; simulates 6 failure modes (insufficient funds, network timeout, invalid payment method, fraud detection, gateway downtime, partial authorization) plus success and pending states
 * **Shipping Simulation** — Internal logic generating tracking IDs and status updates without external carrier API integration
-* **User Profile** — User account data including email, password, display name, phone number, and default shipping address
+* **User Profile** — User account data including email, display name, phone number, and default shipping address
 
 ---
 
