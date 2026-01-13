@@ -1,0 +1,87 @@
+name: Feature 🧩
+description: A new capability or functionality (The Master Blueprint)
+title: "Feature: [Title]"
+type: "Feature 🧩"
+projects: ["StaytunedLLP/43"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🚀 **Speed Leads, Ship Every Day.** 
+        _Fill this out completely to create a valid prompt for the AI Agent._
+
+  - type: textarea
+    attributes:
+      label: Feature Blueprint (AI Prompt)
+      value: |
+        ## 1. Overview
+        *   **Problem Statement:** [Brief description of the problem.]
+        *   **Success Metrics:** [e.g., "Reduce checkout time by 10%"]
+
+        ## 2. Requirements & Design (Prompt-Driven)
+        *   **High-Level Goal:** [Summary of functionality]
+        *   **UI Generation Strategy:**
+            *   **Source:** All UI components must be generated using the **`intro`** Design System via the MCP Server.
+            *   **Layout Prompt:**
+                > [Describe the layout: e.g., "Two-column layout, left nav, right form..."]
+
+        *   **"intro" Component Specification:**
+            *   | UI Element | `intro` Component Name | Required Props/Variant |
+                | :--- | :--- | :--- |
+                | [e.g. Submit] | `intro.Button` | `variant="primary"` |
+                | [e.g. Input] | `intro.TextField` | `label="Name"` |
+
+        *   **Non-Functional Requirements:**
+            *   **Performance:** [e.g. < 200ms]
+            *   **Security:** [e.g. Input sanitization]
+
+        ## 3. Technical Plan
+        *   **Architectural Scope (Monorepo & Bounded Context):**
+            *   **Bounded Context / Service Name:** [e.g. `ordering-service`]
+            *   **Backend Service Path:** [e.g. `services/ordering-service/src/...`]
+            *   **Frontend Package Path (if any):** [e.g. `packages/app-main/src/features/ordering/...`]
+        *   **Deployment Plan:**
+            *   **Feature Flag:** [e.g. Managed by Flag #101]
+
+        ## 4. Implementation Plan (Stories)
+
+        ---
+        ### Story 1: [Story Title]
+        *   **Goal:** [Specific user value]
+        *   **Feature Flag:** [e.g. Wrapped in `enable-new-feature`]
+
+        *   **Scenarios (Behavioral Specs):**
+            *   **Scenario 1.1: [Happy Path Title]**
+                *   **Given** [Primary, most common user flow and system state. Describe in detail: user type, preconditions, relevant data state, and environment.]
+                *   **When** [The main trigger/action the user performs. Be explicit about API call, UI action, or background job.]
+                *   **Then** [The ideal outcome. Include: domain state changes, side effects (events, emails, etc.), and user-visible results.]
+                *   **And*** [Additional outcomes if needed.]
+
+            *   **Scenario 1.2+ and beyond:**
+                *   Use **as many additional scenarios as needed** (1.2, 1.3, 1.4, …) to fully cover:
+                    *   Validation failures
+                    *   Authorization/permission issues
+                    *   Concurrency / race-condition cases
+                    *   Downstream dependency failures (DB, external APIs, queues, etc.)
+                    *   Performance / scale behavior (large payloads, high volume, p99 latency)
+                    *   Idempotency / retries and duplicate requests
+                    *   Localization/formatting differences where relevant
+                *   For **each** Scenario 1.X you add, keep ONLY this format and specialize the content:
+                    *   **Scenario 1.X: [Short, precise title]**
+                        *   **Given** [Concrete preconditions and state – user type, data state, feature flags, environment.]
+                        *   **When** [Specific trigger: exact API, UI action, background job, or event.]
+                        *   **Then** [Expected outcome, including: domain state, side effects (events, emails, logs), error codes/messages, and any important metrics/observability expectations.]
+                        *   **And*** [Additional outcomes if needed.]
+
+
+        ---
+        ### Story 2: [Story Title]
+        *   **Goal:** ...
+        *   **Scenarios:** ...
+
+        ## 5. History & Status
+        *   **Status:** Draft
+        *   **Related Issues:** [Link to Feature Flag Issue]
+    validations:
+      required: true

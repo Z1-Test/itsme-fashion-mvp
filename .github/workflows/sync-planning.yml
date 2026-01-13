@@ -1,0 +1,57 @@
+name: 🔄 Planning Lifecycle Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/epics/**"
+      - "docs/features/**"
+      - "docs/product/**"
+      - "docs/execution/**"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no actual changes)"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Dependencies
+        working-directory: .github/sync-issues
+        run: npm ci
+
+      - name: Compile TypeScript
+        working-directory: .github/sync-issues
+        run: |
+          echo "🔨 Compiling TypeScript with tsgo..."
+          npx tsgo
+
+      - name: Run Tests
+        working-directory: .github/sync-issues
+        run: |
+          echo "🧪 Running tests..."
+          node --test dist/tests/*.test.js
+
+      - name: Run Sync Script
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node .github/sync-issues/dist/src/sync-planning.js ${{ inputs.dry_run == true && '--dry-run' || '' }}

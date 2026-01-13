@@ -1,0 +1,29 @@
+{
+  "name": "sync-issues",
+  "version": "2.0.0",
+  "description": "TypeScript automation scripts for syncing planning documentation with GitHub Issues and Firebase Remote Config.",
+  "type": "module",
+  "main": "dist/src/sync-remote-config.js",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "tsgo",
+    "test": "node --test dist/tests/*.test.js",
+    "check": "tsgo --noEmit"
+  },
+  "keywords": [
+    "firebase",
+    "remote-config",
+    "github-issues",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "@typescript/native-preview": "^7.0.0-dev.20260107.1",
+    "typescript": "^5.9.3"
+  }
+}

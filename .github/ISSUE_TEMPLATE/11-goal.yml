@@ -1,0 +1,37 @@
+name: Goal 🏁
+description: Outcome or objective definition
+title: '|'
+type: 'Goal 🏁'
+projects: ['StaytunedLLP/28', 'StaytunedLLP/72']
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🚀 Speed Leads, Ship Every Day.
+
+  - type: textarea
+    attributes:
+      label: Description
+      value: |
+        As a
+        I want to
+        so that
+
+        ### Why this is important
+
+        1. 
+
+        ### Alignment with Company Goals
+
+        1. 
+
+        ### Success Metrics 
+
+        1. [Metric Name](Link) - Brief description of the metric
+
+        ### Acceptance Criteria
+
+        - [ ] 
+
+        ### Additional Context
