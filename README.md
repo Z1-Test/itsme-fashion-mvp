@@ -34,13 +34,13 @@ dev-ecom-test/
 │       ├── 🛍️ catalog           # Product browsing & search
 │       ├── 🔑 identity          # User accounts and security
 │       ├── 🛒 cart              # Basket and item persistence
-│       ├── � payments          # Transaction logic (SIMULATED)
-│       └── � delivery          # Shipping and tracking (SIMULATED)
+│       ├── 💳 payments          # Transaction logic (SIMULATED)
+│       └── 🚚 delivery          # Shipping and tracking (SIMULATED)
 ```
 
 ---
 
-## � Required Product Features
+## 🚀 Required Product Features
 
 The following features must be implemented as per client requirements:
 
