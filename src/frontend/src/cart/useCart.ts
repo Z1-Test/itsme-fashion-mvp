@@ -61,7 +61,6 @@ export const useCart = () => {
 
   const clearCart = () => {
     dispatch({ type: "CLEAR_CART" });
-    clearCartStorage();
   };
 
   return {

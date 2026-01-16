@@ -71,7 +71,19 @@ export const cartReducer = (
 
       if (quantity <= 0) {
         // Remove item if quantity is 0 or less
-        return cartReducer(state, { type: "REMOVE_ITEM", payload: productId });
+        const newItems = state.items.filter(
+          (item) => item.productId !== productId
+        );
+        const { subtotal, itemCount } = calculateCartTotals(newItems);
+
+        return {
+          ...state,
+          items: newItems,
+          subtotal,
+          itemCount,
+          lastUpdated: Date.now(),
+          error: null,
+        };
       }
 
       const newItems = state.items.map((item) =>

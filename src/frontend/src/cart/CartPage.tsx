@@ -5,7 +5,7 @@
  * Uses consistent theme from Catalog
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useCart } from './useCart';
 import { CartItem } from '../types/cart';
 
@@ -17,7 +17,6 @@ export const CartPage: React.FC<CartPageProps> = ({ onNavigateToCatalog }) => {
   const { cart, removeItem, updateQuantity, clearCart } = useCart();
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
     updateQuantity(productId, newQuantity);
   };
 
@@ -134,7 +133,7 @@ export const CartPage: React.FC<CartPageProps> = ({ onNavigateToCatalog }) => {
 
               {/* Order Summary */}
               <div className="lg:col-span-4 mt-8 lg:mt-0">
-                <CartSummary subtotal={cart.subtotal} />
+                <CartSummary subtotal={cart.subtotal} items={cart.items} />
               </div>
             </div>
           )}
@@ -335,10 +334,14 @@ const CartItemRow: React.FC<CartItemRowProps> = ({ item, onQuantityChange, onRem
 
 interface CartSummaryProps {
   subtotal: number;
+  items: CartItem[];
 }
 
-const CartSummary: React.FC<CartSummaryProps> = ({ subtotal }) => {
-  const hasOutOfStockItems = false; // TODO: Check cart for out-of-stock items
+const CartSummary: React.FC<CartSummaryProps> = ({ subtotal, items }) => {
+  const hasOutOfStockItems = useMemo(
+    () => items.some(item => !item.inStock),
+    [items]
+  );
   const shipping = 0; // Free shipping
   const total = subtotal + shipping;
 
