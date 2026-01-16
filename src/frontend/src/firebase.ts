@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 
 // Firebase configuration for emulator
@@ -11,8 +11,8 @@ const firebaseConfig = {
   appId: "demo-app-id"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (reuse existing app if already initialized)
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // Initialize Firestore
 const db = getFirestore(app);

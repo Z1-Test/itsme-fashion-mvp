@@ -12,10 +12,10 @@ const __dirname = dirname(__filename);
 const firebaseConfig = {
   apiKey: "demo-api-key",
   authDomain: "demo-project.firebaseapp.com",
-  projectId: "demo-project",
+  projectId: "dev-ecom-test-010126",
   storageBucket: "demo-project.appspot.com",
   messagingSenderId: "123456789",
-  appId: "demo-app-id"
+  appId: "1:123456789:web:abcdefg12345"
 };
 
 // Initialize Firebase
