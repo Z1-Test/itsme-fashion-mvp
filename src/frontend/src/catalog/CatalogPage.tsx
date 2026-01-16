@@ -196,7 +196,10 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
                     </h3>
                     <p className="text-xs text-gray-500 font-light">{product.shadeName}</p>
                   </div>
-                  <button className="ml-2 p-1 hover:opacity-70 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                  <button className="ml-2 p-1 hover:opacity-70 transition-opacity" onClick={(e) => {
+                    e.stopPropagation();
+                    alert('Added to love list!');
+                  }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                     </svg>
@@ -208,7 +211,17 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
                   <span className="text-sm font-light">₹{product.price}</span>
                   <button 
                     className="px-6 py-2 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      cartHook.addItem({
+                        productId: product.id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: 1,
+                        image: product.image
+                      });
+                      alert('Added to cart!');
+                    }}
                   >
                     Add to Cart
                   </button>
@@ -364,10 +377,23 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
                     <button 
                       className="flex-1 px-6 py-3 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light disabled:bg-gray-300 disabled:cursor-not-allowed"
                       disabled={selectedProduct.stock === 0}
+                      onClick={() => {
+                        cartHook.addItem({
+                          productId: selectedProduct.id,
+                          name: selectedProduct.name,
+                          price: selectedProduct.price,
+                          quantity: 1,
+                          image: selectedProduct.image
+                        });
+                        alert('Added to cart!');
+                      }}
                     >
                       {selectedProduct.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                     </button>
-                    <button className="p-3 border border-gray-200 hover:border-black transition-colors">
+                    <button 
+                      className="p-3 border border-gray-200 hover:border-black transition-colors"
+                      onClick={() => alert('Added to love list!')}
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                       </svg>
