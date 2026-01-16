@@ -105,7 +105,7 @@ export const CartPage: React.FC<CartPageProps> = ({ cartHook }) => {
           </div>
 
           {cart.items.length === 0 ? (
-            <EmptyCart onNavigateToCatalog={onNavigateToCatalog} />
+            <EmptyCart />
           ) : (
             <div className="lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12">
               {/* Cart Items */}
@@ -207,11 +207,7 @@ export const CartPage: React.FC<CartPageProps> = ({ cartHook }) => {
   );
 };
 
-interface EmptyCartProps {
-  onNavigateToCatalog: () => void;
-}
-
-const EmptyCart: React.FC<EmptyCartProps> = ({ onNavigateToCatalog }) => (
+const EmptyCart: React.FC = () => (
   <div className="border border-gray-200 p-8 sm:p-12 text-center">
     <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 mb-4 sm:mb-6">
       <svg
@@ -230,12 +226,12 @@ const EmptyCart: React.FC<EmptyCartProps> = ({ onNavigateToCatalog }) => (
     </div>
     <h3 className="text-lg sm:text-xl font-light text-gray-900 mb-2">Your cart is empty</h3>
     <p className="text-xs sm:text-sm text-gray-500 font-light mb-4 sm:mb-6">Start adding products to your cart.</p>
-    <button
+    <a
       href="/"
       className="inline-block px-6 sm:px-8 py-2 sm:py-3 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light"
     >
       Continue Shopping
-    </button>
+    </a>
   </div>
 );
 

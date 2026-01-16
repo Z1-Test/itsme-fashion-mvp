@@ -17,26 +17,24 @@ export const LoveListPage: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex-shrink-0">
-              <button
-                href="/"
-                className="text-lg sm:text-xl md:text-2xl font-light tracking-widest hover:opacity-70 transition-opacity"
-              >
-                ITSME.FASHION
-              </button>
-            </div>
+            <a
+              href="/"
+              className="text-lg sm:text-xl md:text-2xl font-light tracking-widest hover:opacity-70 transition-opacity"
+            >
+              ITSME.FASHION
+            </a>
 
             {/* Right Menu */}
             <div className="flex items-center space-x-3 sm:space-x-6 md:space-x-8">
               <a href="#" className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">
                 Account
               </a>
-              <button
+              <a
                 href="/"
                 className="text-xs sm:text-sm font-light hover:opacity-70 transition-opacity"
               >
                 Continue Shopping
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -49,12 +47,12 @@ export const LoveListPage: React.FC = () => {
           <nav className="mb-6 sm:mb-8 text-xs uppercase tracking-wider">
             <ol className="flex items-center space-x-2 sm:space-x-3 text-gray-400">
               <li>
-                <button
+                <a
                   href="/"
                   className="hover:text-black transition-colors"
                 >
                   Home
-                </button>
+                </a>
               </li>
               <li>
                 <span>/</span>
@@ -92,12 +90,12 @@ export const LoveListPage: React.FC = () => {
               <p className="text-sm text-gray-500 font-light mb-6">
                 Your love list is empty
               </p>
-              <button
+              <a
                 href="/"
-                className="px-8 py-2.5 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light"
+                className="inline-block px-8 py-2.5 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light"
               >
                 Start Shopping
-              </button>
+              </a>
             </div>
           ) : (
             <>
