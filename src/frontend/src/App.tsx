@@ -1,46 +1,33 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './hooks/useAuth';
-import ProtectedRoute from './components/ProtectedRoute';
-import SignIn from './pages/SignIn';
-import SignUp from './pages/SignUp';
-import Home from './pages/Home';
+import { useState } from 'react';
+import CatalogPage from './catalog/CatalogPage';
+import { CartPage } from './cart/CartPage';
+import { LoveListPage } from './loveList/LoveListPage';
+import { useCart } from './cart/useCart';
+import { useLoveList } from './loveList/useLoveList';
 
 function App() {
+  const [currentPage, setCurrentPage] = useState<'catalog' | 'cart' | 'loveList'>('catalog');
+  const cartHook = useCart();
+  const { loveList } = useLoveList();
+
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-
-          {/* Protected Routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Redirect any unknown routes to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <div className="App">
+      {currentPage === 'catalog' ? (
+        <CatalogPage 
+          onNavigateToCart={() => setCurrentPage('cart')} 
+          onNavigateToLoveList={() => setCurrentPage('loveList')}
+          cartHook={cartHook}
+        />
+      ) : currentPage === 'loveList' ? (
+        <LoveListPage
+          onNavigateToCatalog={() => setCurrentPage('catalog')}
+          onNavigateToCart={() => setCurrentPage('cart')}
+        />
+      ) : (
+        <CartPage onNavigateToCatalog={() => setCurrentPage('catalog')} cartHook={cartHook} />
+      )}
+    </div>
   );
 }
 
 export default App;
-import CatalogPage from './catalog/CatalogPage';
-
-function App() {
-  return (
-    <div className="App">
-       <CatalogPage />
-    </div>
-  )
-}
-
-export default App
