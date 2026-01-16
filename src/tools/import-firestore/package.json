@@ -1,0 +1,14 @@
+{
+  "name": "import-firestore",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Import CSV products to Firestore",
+  "main": "import-products.js",
+  "scripts": {
+    "import": "node import-products.js"
+  },
+  "dependencies": {
+    "firebase": "^10.7.1",
+    "csv-parse": "^5.5.3"
+  }
+}
