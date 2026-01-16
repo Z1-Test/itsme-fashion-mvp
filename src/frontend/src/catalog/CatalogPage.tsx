@@ -2,14 +2,18 @@ import React, { useState, useMemo } from 'react';
 import { products } from './productData';
 import './CatalogPage.css';
 import { useCart } from '../cart/useCart';
+import { useLoveList } from '../loveList/useLoveList';
 
 interface CatalogPageProps {
   onNavigateToCart: () => void;
-  cartCount: number;
+  onNavigateToLoveList?: () => void;
+  cartHook: ReturnType<typeof useCart>;
+  loveListCount?: number;
 }
 
-const CatalogPage: React.FC<CatalogPageProps> = ({ onNavigateToCart, cartCount }) => {
-  const { addItem, updateQuantity, removeItem, cart } = useCart();
+const CatalogPage: React.FC<CatalogPageProps> = ({ onNavigateToCart, onNavigateToLoveList, cartHook, loveListCount = 0 }) => {
+  const { addItem, updateQuantity, removeItem, cart } = cartHook;
+  const { addItem: addToLoveList, removeItem: removeFromLoveList, isInLoveList, loveList } = useLoveList();
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
 
   // Map of product IDs to their quantities in cart
@@ -47,6 +51,21 @@ const CatalogPage: React.FC<CatalogPageProps> = ({ onNavigateToCart, cartCount }
     const currentQty = cartQuantities[productId] || 1;
     updateQuantity(productId, currentQty + 1);
   };
+
+  const handleToggleLoveList = (product: typeof products[0]) => {
+    if (isInLoveList(product.id)) {
+      removeFromLoveList(product.id);
+    } else {
+      addToLoveList({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.image,
+      });
+    }
+  };
+
+  const computedLoveListCount = loveList.items.length;
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-sans">
       {/* Header */}
@@ -82,16 +101,27 @@ const CatalogPage: React.FC<CatalogPageProps> = ({ onNavigateToCart, cartCount }
             <div className="flex items-center space-x-3 sm:space-x-6 md:space-x-8">
               <a href="#" className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Account</a>
               <button className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
-              <button onClick={onNavigateToCart} className="flex items-center space-x-1 sm:space-x-2 hover:opacity-70 transition-opacity relative cursor-pointer">
+              {onNavigateToLoveList && (
+                <button onClick={onNavigateToLoveList} className="hover:opacity-70 transition-opacity relative cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="sm:w-[22px] sm:h-[22px]">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                  {loveListCount > 0 && (
+                    <span className="absolute top-0 right-0 bg-black text-white text-xs font-light rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center transform translate-x-1 -translate-y-1">
+                      {loveListCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              <button onClick={onNavigateToCart} className="hover:opacity-70 transition-opacity relative cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="sm:w-[22px] sm:h-[22px]">
                   <circle cx="9" cy="21" r="1"></circle>
                   <circle cx="20" cy="21" r="1"></circle>
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                 </svg>
-                <span className="text-xs sm:text-sm font-light">Cart</span>
-                {cartCount > 0 && (
+                {cart.itemCount > 0 && (
                   <span className="absolute top-0 right-0 bg-black text-white text-xs font-light rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center transform translate-x-1 -translate-y-1">
-                    {cartCount}
+                    {cart.itemCount}
                   </span>
                 )}
               </button>
@@ -143,10 +173,19 @@ const CatalogPage: React.FC<CatalogPageProps> = ({ onNavigateToCart, cartCount }
                     </h3>
                     <p className="text-xs text-gray-500 font-light">{product.shadeName}</p>
                   </div>
-                  <button className="ml-2 p-1 hover:opacity-70 transition-opacity">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
+                  <button 
+                    onClick={() => handleToggleLoveList(product)}
+                    className="ml-2 p-1 hover:opacity-70 transition-opacity"
+                  >
+                    {isInLoveList(product.id) ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-red-500">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                    )}
                   </button>
                 </div>
                 

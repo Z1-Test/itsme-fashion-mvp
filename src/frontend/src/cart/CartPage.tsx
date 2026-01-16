@@ -11,10 +11,11 @@ import { CartItem } from '../types/cart';
 
 interface CartPageProps {
   onNavigateToCatalog: () => void;
+  cartHook: ReturnType<typeof useCart>;
 }
 
-export const CartPage: React.FC<CartPageProps> = ({ onNavigateToCatalog }) => {
-  const { cart, removeItem, updateQuantity, clearCart } = useCart();
+export const CartPage: React.FC<CartPageProps> = ({ onNavigateToCatalog, cartHook }) => {
+  const { cart, removeItem, updateQuantity, clearCart } = cartHook;
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     updateQuantity(productId, newQuantity);
