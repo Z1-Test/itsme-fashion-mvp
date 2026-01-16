@@ -10,11 +10,10 @@ import { useCart } from './useCart';
 import { CartItem } from '../types/cart';
 
 interface CartPageProps {
-  onNavigateToCatalog: () => void;
   cartHook: ReturnType<typeof useCart>;
 }
 
-export const CartPage: React.FC<CartPageProps> = ({ onNavigateToCatalog, cartHook }) => {
+export const CartPage: React.FC<CartPageProps> = ({ cartHook }) => {
   const { cart, removeItem, updateQuantity, clearCart } = cartHook;
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
@@ -59,18 +58,17 @@ export const CartPage: React.FC<CartPageProps> = ({ onNavigateToCatalog, cartHoo
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <button 
-              onClick={onNavigateToCatalog}
+            <a href="/" 
               className="text-lg sm:text-xl md:text-2xl font-light tracking-widest hover:opacity-70 transition-opacity">
               ITSME.FASHION
-            </button>
+            </a>
 
             {/* Right Menu */}
             <div className="flex items-center space-x-3 sm:space-x-6 md:space-x-8">
               <a href="#" className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Account</a>
               <button className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
               <button 
-                onClick={onNavigateToCatalog}
+                onClick={() => window.location.href = '/'}
                 className="flex items-center space-x-1 sm:space-x-2 hover:opacity-70 transition-opacity">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="sm:w-[22px] sm:h-[22px]">
                   <circle cx="9" cy="21" r="1"></circle>
@@ -90,7 +88,7 @@ export const CartPage: React.FC<CartPageProps> = ({ onNavigateToCatalog, cartHoo
           {/* Breadcrumb */}
           <nav className="mb-6 sm:mb-8 text-xs uppercase tracking-wider">
             <ol className="flex items-center space-x-3 text-gray-400">
-              <li><button onClick={onNavigateToCatalog} className="hover:text-black transition-colors">Home</button></li>
+              <li><a href="/" className="hover:text-black transition-colors">Home</a></li>
               <li><span>/</span></li>
               <li className="text-black">Shopping Cart</li>
             </ol>
@@ -233,7 +231,7 @@ const EmptyCart: React.FC<EmptyCartProps> = ({ onNavigateToCatalog }) => (
     <h3 className="text-lg sm:text-xl font-light text-gray-900 mb-2">Your cart is empty</h3>
     <p className="text-xs sm:text-sm text-gray-500 font-light mb-4 sm:mb-6">Start adding products to your cart.</p>
     <button
-      onClick={onNavigateToCatalog}
+      href="/"
       className="inline-block px-6 sm:px-8 py-2 sm:py-3 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light"
     >
       Continue Shopping

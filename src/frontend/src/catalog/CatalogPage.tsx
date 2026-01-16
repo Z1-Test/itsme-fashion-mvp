@@ -52,7 +52,7 @@ const UserIcon = () => (
   </svg>
 );
 
-const CatalogPage: React.FC = () => {
+const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

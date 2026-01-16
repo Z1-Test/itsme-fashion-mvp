@@ -1,15 +1,7 @@
 import React from "react";
 import { useLoveList } from "../loveList/useLoveList";
 
-interface LoveListPageProps {
-  onNavigateToCatalog: () => void;
-  onNavigateToCart?: () => void;
-}
-
-export const LoveListPage: React.FC<LoveListPageProps> = ({
-  onNavigateToCatalog,
-  onNavigateToCart,
-}) => {
+export const LoveListPage: React.FC = () => {
   const { loveList, removeItem } = useLoveList();
 
   const totalValue = loveList.items.reduce((sum, item) => sum + item.price, 0);
@@ -27,7 +19,7 @@ export const LoveListPage: React.FC<LoveListPageProps> = ({
             {/* Logo */}
             <div className="flex-shrink-0">
               <button
-                onClick={onNavigateToCatalog}
+                href="/"
                 className="text-lg sm:text-xl md:text-2xl font-light tracking-widest hover:opacity-70 transition-opacity"
               >
                 ITSME.FASHION
@@ -40,7 +32,7 @@ export const LoveListPage: React.FC<LoveListPageProps> = ({
                 Account
               </a>
               <button
-                onClick={onNavigateToCatalog}
+                href="/"
                 className="text-xs sm:text-sm font-light hover:opacity-70 transition-opacity"
               >
                 Continue Shopping
@@ -58,7 +50,7 @@ export const LoveListPage: React.FC<LoveListPageProps> = ({
             <ol className="flex items-center space-x-2 sm:space-x-3 text-gray-400">
               <li>
                 <button
-                  onClick={onNavigateToCatalog}
+                  href="/"
                   className="hover:text-black transition-colors"
                 >
                   Home
@@ -101,7 +93,7 @@ export const LoveListPage: React.FC<LoveListPageProps> = ({
                 Your love list is empty
               </p>
               <button
-                onClick={onNavigateToCatalog}
+                href="/"
                 className="px-8 py-2.5 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light"
               >
                 Start Shopping

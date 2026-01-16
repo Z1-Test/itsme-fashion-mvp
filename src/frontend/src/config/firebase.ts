@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
@@ -13,6 +14,7 @@ const firebaseConfig = {
 // Initialize Firebase app once and reuse to prevent duplicate-app errors
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 // Connect to Firebase Auth emulator in development
 if (import.meta.env.DEV) {
@@ -23,6 +25,18 @@ if (import.meta.env.DEV) {
       console.info(`🔧 Connected to Firebase Auth emulator at ${authEmulatorUrl}`);
     } catch (error) {
       console.warn('Firebase Auth Emulator connection failed:', error);
+    }
+  }
+
+  // Connect to Firestore emulator in development
+  const firestoreEmulatorUrl = import.meta.env.VITE_FIRESTORE_EMULATOR_HOST;
+  if (firestoreEmulatorUrl) {
+    try {
+      const [host, port] = firestoreEmulatorUrl.split(':');
+      connectFirestoreEmulator(db, host, parseInt(port, 10));
+      console.info(`🔧 Connected to Firestore emulator at ${firestoreEmulatorUrl}`);
+    } catch (error) {
+      console.warn('Firestore Emulator connection failed:', error);
     }
   }
 }

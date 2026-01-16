@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
+import { useAuth } from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -7,70 +8,42 @@ import CatalogPage from './catalog/CatalogPage';
 import { CartPage } from './cart/CartPage';
 import { LoveListPage } from './loveList/LoveListPage';
 import { useCart } from './cart/useCart';
-import { useLoveList } from './loveList/useLoveList';
-import { useState } from 'react';
+import { useEffect } from 'react';
+
+function AppRoutes() {
+  const { user } = useAuth();
+  const cartHook = useCart();
+
+  // Sync cart with Firestore on user change or component mount
+  useEffect(() => {
+    if (user && cartHook.syncCartToFirestore) {
+      cartHook.syncCartToFirestore(user.uid);
+    }
+  }, [user?.uid, cartHook]);
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+
+      {/* Protected Routes */}
+      <Route path="/" element={<ProtectedRoute><CatalogPage cartHook={cartHook} /></ProtectedRoute>} />
+      <Route path="/shop" element={<ProtectedRoute><CatalogPage cartHook={cartHook} /></ProtectedRoute>} />
+      <Route path="/cart" element={<ProtectedRoute><CartPage cartHook={cartHook} /></ProtectedRoute>} />
+      <Route path="/wishlist" element={<ProtectedRoute><LoveListPage /></ProtectedRoute>} />
+
+      {/* Redirect unknown routes to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'catalog' | 'cart' | 'loveList'>('catalog');
-  const cartHook = useCart();
-  const { loveList } = useLoveList();
-
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-
-          {/* Protected Routes */}
-          <Route
-            path="/catalog"
-            element={
-              <ProtectedRoute>
-                <CatalogPage 
-                  onNavigateToCart={() => {}} 
-                  onNavigateToLoveList={() => {}}
-                  cartHook={useCart()}
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/cart"
-            element={
-              <ProtectedRoute>
-                <CartPage onNavigateToCatalog={() => {}} cartHook={useCart()} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/lovelist"
-            element={
-              <ProtectedRoute>
-                <LoveListPage
-                  onNavigateToCatalog={() => {}}
-                  onNavigateToCart={() => {}}
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <CatalogPage 
-                  onNavigateToCart={() => {}} 
-                  onNavigateToLoveList={() => {}}
-                  cartHook={useCart()}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Redirect any unknown routes to signin */}
-          <Route path="*" element={<Navigate to="/signin" replace />} />
-        </Routes>
+        <AppRoutes />
       </Router>
     </AuthProvider>
   );
