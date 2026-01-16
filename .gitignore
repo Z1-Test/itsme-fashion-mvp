@@ -2,10 +2,11 @@ node_modules/
 dist/
 lib/
 
+
+# Firebase emulator logs and temp files
 firebase-debug.log
 firestore-debug.log
-# Debug files
-debug.log
-npm-debug.log
-*.debug.log
-debug/
+emulator.log
+hub-*.json
+.cache/firebase/
+.cache/firebase/**
