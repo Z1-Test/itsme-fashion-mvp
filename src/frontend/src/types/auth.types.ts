@@ -12,6 +12,7 @@ export interface AuthError {
 }
 
 export interface SignUpData {
+  fullName?: string;
   email: string;
   password: string;
   confirmPassword?: string;

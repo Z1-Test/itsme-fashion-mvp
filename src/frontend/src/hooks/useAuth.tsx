@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
+  updateProfile,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -69,7 +70,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         data.email,
         data.password
       );
+      // If the user provided a full name, save it to the Firebase profile
+      if (data.fullName) {
+        try {
+          await updateProfile(userCredential.user, {
+            displayName: data.fullName,
+          });
+        } catch (err) {
+          console.warn('Failed to update displayName:', err);
+        }
+      }
 
+      // Refresh local user state with any updated profile information
       setUser(mapFirebaseUser(userCredential.user));
       console.info('✅ User registered successfully:', userCredential.user.email);
     } catch (err: any) {

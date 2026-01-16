@@ -8,6 +8,7 @@ export const SignUp: React.FC = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -50,6 +51,21 @@ export const SignUp: React.FC = () => {
               <span>{error}</span>
             </div>
           )}
+
+          <div className="form-group">
+            <label htmlFor="fullName">Full Name</label>
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="Your full name"
+              required
+              autoComplete="name"
+              disabled={loading}
+            />
+          </div>
 
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
