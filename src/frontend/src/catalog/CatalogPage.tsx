@@ -1,46 +1,68 @@
+import React, { useState, useMemo } from 'react';
 import { products } from './productData';
 import './CatalogPage.css';
+import { useCart } from '../cart/useCart';
 
-// Icons as basic SVG functional components to avoid dependencies
-const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-  </svg>
-);
+interface CatalogPageProps {
+  onNavigateToCart: () => void;
+  cartCount: number;
+}
 
-const ShoppingCartIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="9" cy="21" r="1"></circle>
-    <circle cx="20" cy="21" r="1"></circle>
-    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-  </svg>
-);
+const CatalogPage: React.FC<CatalogPageProps> = ({ onNavigateToCart, cartCount }) => {
+  const { addItem, updateQuantity, removeItem, cart } = useCart();
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
 
-const UserIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
-  </svg>
-);
+  // Map of product IDs to their quantities in cart
+  const cartQuantities = useMemo(() => {
+    const map: Record<string, number> = {};
+    cart.items.forEach(item => {
+      map[item.productId] = item.quantity;
+    });
+    return map;
+  }, [cart.items]);
 
-const CatalogPage: React.FC = () => {
+  const handleAddToCart = (product: typeof products[0]) => {
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.image,
+      quantity: 1,
+      inStock: true
+    });
+    setExpandedProductId(product.id);
+  };
+
+  const handleDecrement = (productId: string) => {
+    const currentQty = cartQuantities[productId] || 1;
+    if (currentQty > 1) {
+      updateQuantity(productId, currentQty - 1);
+    } else {
+      removeItem(productId);
+      setExpandedProductId(null);
+    }
+  };
+
+  const handleIncrement = (productId: string) => {
+    const currentQty = cartQuantities[productId] || 1;
+    updateQuantity(productId, currentQty + 1);
+  };
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-sans">
       {/* Header */}
       <header className="bg-white text-black border-b border-gray-200 sticky top-0 z-50">
         {/* Top Header */}
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <a href="/" className="text-2xl font-light tracking-widest hover:opacity-70 transition-opacity">
+              <a href="/" className="text-lg sm:text-xl md:text-2xl font-light tracking-widest hover:opacity-70 transition-opacity">
                 ITSME.FASHION
               </a>
             </div>
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-12">
+            {/* Search Bar - Hidden on mobile */}
+            <div className="hidden md:flex flex-1 max-w-2xl mx-6 lg:mx-12">
               <div className="relative">
                 <input
                   type="text"
@@ -57,18 +79,22 @@ const CatalogPage: React.FC = () => {
             </div>
 
             {/* Right Menu */}
-            <div className="flex items-center space-x-8">
-              <a href="#" className="text-sm font-light hover:opacity-70 transition-opacity">Account</a>
-              <button className="text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
-              <a href="#" className="flex items-center space-x-2 hover:opacity-70 transition-opacity relative">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <div className="flex items-center space-x-3 sm:space-x-6 md:space-x-8">
+              <a href="#" className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Account</a>
+              <button className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
+              <button onClick={onNavigateToCart} className="flex items-center space-x-1 sm:space-x-2 hover:opacity-70 transition-opacity relative cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="sm:w-[22px] sm:h-[22px]">
                   <circle cx="9" cy="21" r="1"></circle>
                   <circle cx="20" cy="21" r="1"></circle>
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                 </svg>
-                <span className="text-sm font-light">Cart</span>
-                <span className="absolute -top-2 -right-2 bg-black text-white text-xs font-light rounded-full w-5 h-5 flex items-center justify-center">2</span>
-              </a>
+                <span className="text-xs sm:text-sm font-light">Cart</span>
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-black text-white text-xs font-light rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center transform translate-x-1 -translate-y-1">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -76,10 +102,10 @@ const CatalogPage: React.FC = () => {
 
       {/* Main Content */}
       <main className="bg-white">
-        <div className="container mx-auto px-6 py-12 max-w-7xl">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-12 max-w-7xl">
           {/* Breadcrumb */}
-          <nav className="mb-8 text-xs uppercase tracking-wider">
-            <ol className="flex items-center space-x-3 text-gray-400">
+          <nav className="mb-6 sm:mb-8 text-xs uppercase tracking-wider">
+            <ol className="flex items-center space-x-2 sm:space-x-3 text-gray-400">
               <li><a href="#" className="hover:text-black transition-colors">Home</a></li>
               <li><span>/</span></li>
               <li><a href="#" className="hover:text-black transition-colors">Shop</a></li>
@@ -89,17 +115,17 @@ const CatalogPage: React.FC = () => {
           </nav>
 
           {/* Header */}
-          <div className="mb-12 pb-8 border-b border-gray-200">
-            <h1 className="text-4xl font-light tracking-wider mb-3">New Collection</h1>
-            <p className="text-sm text-gray-500 font-light">{products.length} Products</p>
+          <div className="mb-8 sm:mb-12 pb-6 sm:pb-8 border-b border-gray-200">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-wider mb-2 sm:mb-3">New Collection</h1>
+            <p className="text-xs sm:text-sm text-gray-500 font-light">{products.length} Products</p>
           </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {products.map((product) => (
             <div key={product.id} className="group cursor-pointer">
               {/* Product Image */}
-              <div className="aspect-square w-full mb-4 overflow-hidden bg-gray-50 border border-gray-200">
+              <div className="aspect-square w-full mb-3 sm:mb-4 overflow-hidden bg-gray-50 border border-gray-200">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -108,11 +134,11 @@ const CatalogPage: React.FC = () => {
               </div>
 
               {/* Product Info */}
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{product.category}</p>
-                    <h3 className="text-sm font-light leading-tight mb-1">
+                    <h3 className="text-xs sm:text-sm font-light leading-tight mb-1">
                       {product.name}
                     </h3>
                     <p className="text-xs text-gray-500 font-light">{product.shadeName}</p>
@@ -125,11 +151,33 @@ const CatalogPage: React.FC = () => {
                 </div>
                 
                 {/* Price */}
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-sm font-light">₹{product.price}</span>
-                  <button className="px-6 py-2 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light">
-                    Add to Cart
-                  </button>
+                <div className="flex items-center justify-between pt-1 sm:pt-2">
+                  <span className="text-xs sm:text-sm font-light">₹{product.price}</span>
+                  {expandedProductId === product.id ? (
+                    <div className="flex items-center space-x-1 sm:space-x-2">
+                      <button
+                        onClick={() => handleDecrement(product.id)}
+                        className="w-7 h-7 sm:w-8 sm:h-8 border border-gray-400 text-black hover:bg-gray-200 transition-colors cursor-pointer font-light text-xs sm:text-sm flex items-center justify-center"
+                      >
+                        −
+                      </button>
+                      <span className="w-6 sm:w-8 text-center text-xs sm:text-sm font-light">
+                        {cartQuantities[product.id] || 1}
+                      </span>
+                      <button
+                        onClick={() => handleIncrement(product.id)}
+                        className="w-7 h-7 sm:w-8 sm:h-8 border border-gray-400 text-black hover:bg-gray-200 transition-colors cursor-pointer font-light text-xs sm:text-sm flex items-center justify-center"
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => handleAddToCart(product)}
+                      className="px-4 sm:px-6 py-1.5 sm:py-2 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-800 transition-colors font-light cursor-pointer">
+                      Add to Cart
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -139,10 +187,10 @@ const CatalogPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-black text-white mt-24">
-        <div className="container mx-auto px-6 py-16 max-w-7xl">
+      <footer className="bg-black text-white mt-12 sm:mt-24">
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-16 max-w-7xl">
           {/* Footer Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16 pb-16 border-b border-gray-800">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-12 mb-8 sm:mb-16 pb-8 sm:pb-16 border-b border-gray-800">
             {/* Shop */}
             <div>
               <h3 className="text-xs uppercase tracking-widest mb-6 font-light">
