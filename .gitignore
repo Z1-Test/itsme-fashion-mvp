@@ -1,3 +1,11 @@
 node_modules/
 dist/
 lib/
+
+firebase-debug.log
+firestore-debug.log
+# Debug files
+debug.log
+npm-debug.log
+*.debug.log
+debug/
