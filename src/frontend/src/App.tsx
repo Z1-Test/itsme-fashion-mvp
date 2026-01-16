@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PaymentPage from './payment/PaymentPage';
 import OrderPlaced from './pages/OrderPlaced';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         } />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/order-placed" element={<OrderPlaced />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   );
