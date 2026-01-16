@@ -116,14 +116,13 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
             <div className="flex items-center space-x-8">
               <a href="#" className="text-sm font-light hover:opacity-70 transition-opacity">Account</a>
               <button className="text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
-              <a href="#" className="flex items-center space-x-2 hover:opacity-70 transition-opacity relative">
+              <a href="/cart" className="flex items-center space-x-2 hover:opacity-70 transition-opacity relative">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="9" cy="21" r="1"></circle>
                   <circle cx="20" cy="21" r="1"></circle>
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                 </svg>
                 <span className="text-sm font-light">Cart</span>
-                <span className="absolute -top-2 -right-2 bg-black text-white text-xs font-light rounded-full w-5 h-5 flex items-center justify-center">2</span>
               </a>
             </div>
           </div>
