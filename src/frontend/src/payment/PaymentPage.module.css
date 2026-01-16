@@ -1,0 +1,267 @@
+/* Black & White Modern Theme for Payment Page */
+
+
+.container {
+  background: #fff;
+  color: #000;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+}
+
+
+.card {
+  background: #fff;
+  color: #000;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 2rem 2.5rem;
+  max-width: 400px;
+  width: 100%;
+  margin: 2rem 0;
+  border: 1px solid #000;
+  transition: box-shadow 0.2s;
+}
+
+
+.card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.02em;
+  color: #000;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+
+.input {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #000;
+  background: #fff;
+  color: #000;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+
+.input:focus {
+  border-color: #000;
+  outline: none;
+}
+
+
+.button {
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.button:hover {
+  background: #222;
+  color: #fff;
+}
+
+
+.success {
+  color: #000;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+
+.error {
+  color: #000;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 1rem;
+}
+/* PaymentPage.module.css */
+
+
+.payment-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.payment-container {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 2rem;
+  box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.08);
+  border: 1px solid #e5e7eb;
+  padding: 2.5rem;
+  margin: 0 1rem;
+}
+
+.payment-card-bg {
+  display: none;
+}
+
+.payment-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.payment-icon {
+  background: #e0e7ff;
+  border-radius: 50%;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px 0 rgba(99,102,241,0.08);
+  border: 4px solid #fff;
+}
+
+.payment-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #3730a3;
+  margin-bottom: 0.25rem;
+  letter-spacing: -1px;
+}
+
+.payment-desc {
+  color: #6366f1;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-preview {
+  width: 100%;
+  height: 110px;
+  background: #e0e7ff;
+  border-radius: 1.25rem;
+  box-shadow: 0 2px 8px 0 rgba(99,102,241,0.08);
+  color: #3730a3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-preview .card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-preview .card-number {
+  font-family: 'Fira Mono', monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  margin-top: 0.5rem;
+}
+
+.card-preview .card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.payment-label {
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 0.3rem;
+}
+
+.payment-input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.2s;
+}
+.payment-input:focus {
+  border: 1.5px solid #a78bfa;
+}
+
+.payment-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.payment-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 0;
+}
+
+.payment-success .success-icon {
+  margin-bottom: 1rem;
+  animation: bounce 1.2s infinite alternate;
+}
+
+.payment-success .success-title {
+  color: #22c55e;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.payment-success .success-desc {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.payment-btn {
+  width: 100%;
+  background: #6366f1;
+  color: #fff;
+  padding: 0.9rem 0;
+  border: none;
+  border-radius: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px 0 rgba(99,102,241,0.10);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.payment-btn:hover {
+  background: #a5b4fc;
+  color: #3730a3;
+  transform: scale(1.03);
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
