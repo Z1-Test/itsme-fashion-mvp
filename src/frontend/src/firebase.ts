@@ -5,7 +5,7 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 const firebaseConfig = {
   apiKey: "demo-api-key",
   authDomain: "demo-project.firebaseapp.com",
-  projectId: "demo-project",
+  projectId: "dev-ecom-test",
   storageBucket: "demo-project.appspot.com",
   messagingSenderId: "123456789",
   appId: "demo-app-id"

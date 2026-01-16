@@ -12,7 +12,7 @@ import {
   loadCartFromStorage,
   clearCartStorage,
 } from "../utils/cartStorage";
-import { db } from "../config/firebase";
+import { db, getUserCartDataPath } from "../config/firebase";
 import { doc, setDoc, getDoc, onSnapshot, Timestamp, Unsubscribe } from "firebase/firestore";
 import { useAuth } from "../hooks/useAuth";
 
@@ -26,7 +26,7 @@ export const useCart = () => {
   const syncCartToFirestore = useCallback(async (userId: string) => {
     if (!userId) return;
     try {
-      const cartDocRef = doc(db, "users", userId, "cart", "data");
+      const cartDocRef = doc(db, getUserCartDataPath(userId));
       await setDoc(cartDocRef, {
         items: state.items,
         subtotal: state.subtotal,
@@ -43,7 +43,7 @@ export const useCart = () => {
   const loadCartFromFirestore = useCallback(async (userId: string) => {
     if (!userId) return;
     try {
-      const cartDocRef = doc(db, "users", userId, "cart", "data");
+      const cartDocRef = doc(db, getUserCartDataPath(userId));
       const cartSnap = await getDoc(cartDocRef);
       
       if (cartSnap.exists()) {
@@ -63,7 +63,7 @@ export const useCart = () => {
   const subscribeToCartUpdates = useCallback((userId: string): Unsubscribe | undefined => {
     if (!userId) return undefined;
     try {
-      const cartDocRef = doc(db, "users", userId, "cart", "data");
+      const cartDocRef = doc(db, getUserCartDataPath(userId));
       const unsubscribe = onSnapshot(cartDocRef, (snapshot) => {
         if (snapshot.exists()) {
           dispatch({ type: "LOAD_CART", payload: snapshot.data() as unknown as CartState });

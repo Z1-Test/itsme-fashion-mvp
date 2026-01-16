@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../config/firebase';
+import { useLoveList } from '../loveList/useLoveList';
 import './CatalogPage.css';
 
 interface Product {
@@ -30,6 +31,7 @@ interface Product {
 
 
 const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
+  const { addItem: addToLoveList, removeItem: removeFromLoveList, isInLoveList } = useLoveList();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -172,11 +174,22 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
                     </h3>
                     <p className="text-xs text-gray-500 font-light">{product.shadeName}</p>
                   </div>
-                  <button className="ml-2 p-1 hover:opacity-70 transition-opacity" onClick={(e) => {
-                    e.stopPropagation();
-                    alert('Added to love list!');
-                  }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <button 
+                    className={`ml-2 p-1 hover:opacity-70 transition-opacity ${isInLoveList(product.id) ? 'text-red-500' : 'text-gray-400'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isInLoveList(product.id)) {
+                        removeFromLoveList(product.id);
+                      } else {
+                        addToLoveList({
+                          productId: product.id,
+                          name: product.name,
+                          price: product.price,
+                          imageUrl: product.image
+                        });
+                      }
+                    }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5">
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                     </svg>
                   </button>
@@ -367,10 +380,21 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
                       {selectedProduct.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                     </button>
                     <button 
-                      className="p-3 border border-gray-200 hover:border-black transition-colors"
-                      onClick={() => alert('Added to love list!')}
+                      className={`p-3 border transition-colors ${isInLoveList(selectedProduct.id) ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-black'}`}
+                      onClick={() => {
+                        if (isInLoveList(selectedProduct.id)) {
+                          removeFromLoveList(selectedProduct.id);
+                        } else {
+                          addToLoveList({
+                            productId: selectedProduct.id,
+                            name: selectedProduct.name,
+                            price: selectedProduct.price,
+                            imageUrl: selectedProduct.image
+                          });
+                        }
+                      }}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isInLoveList(selectedProduct.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={isInLoveList(selectedProduct.id) ? 'text-red-500' : ''}>
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                       </svg>
                     </button>
