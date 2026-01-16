@@ -11,9 +11,9 @@ const __dirname = dirname(__filename);
 // Firebase configuration (minimal config for emulator)
 const firebaseConfig = {
   apiKey: "demo-api-key",
-  authDomain: "demo-project.firebaseapp.com",
-  projectId: "dev-ecom-test-010126",
-  storageBucket: "demo-project.appspot.com",
+  authDomain: "localhost",
+  projectId: "dev-ecom-test",
+  storageBucket: "dev-ecom-test.appspot.com",
   messagingSenderId: "123456789",
   appId: "1:123456789:web:abcdefg12345"
 };
