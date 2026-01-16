@@ -68,7 +68,7 @@ export const SignUp: React.FC = () => {
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <div className="password-input-wrapper">
+            <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
@@ -95,17 +95,19 @@ export const SignUp: React.FC = () => {
 
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Re-enter your password"
-              required
-              autoComplete="new-password"
-              disabled={loading}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Re-enter your password"
+                required
+                autoComplete="new-password"
+                disabled={loading}
+              />
+            </div>
           </div>
 
           <button

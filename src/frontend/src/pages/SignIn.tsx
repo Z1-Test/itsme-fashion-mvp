@@ -71,7 +71,7 @@ export const SignIn: React.FC = () => {
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <div className="password-input-wrapper">
+            <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
