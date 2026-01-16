@@ -1,0 +1,65 @@
+/* Firecracker animation for OrderPlaced page */
+.container {
+  position: relative;
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.content {
+  z-index: 2;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #222;
+}
+
+.firecrackerLeft, .firecrackerRight {
+  position: absolute;
+  top: 50%;
+  width: 120px;
+  height: 120px;
+  background: none;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.firecrackerLeft {
+  left: 0;
+  transform: translateY(-50%);
+  animation: blastLeft 1.2s ease-out;
+}
+
+.firecrackerRight {
+  right: 0;
+  transform: translateY(-50%);
+  animation: blastRight 1.2s ease-out;
+}
+
+@keyframes blastLeft {
+  0% { opacity: 0; transform: translateY(-50%) scale(0.5) rotate(-30deg); }
+  30% { opacity: 1; transform: translateY(-50%) scale(1.2) rotate(-10deg); }
+  60% { opacity: 1; transform: translateY(-50%) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-50%) scale(0.5) rotate(-30deg); }
+}
+
+@keyframes blastRight {
+  0% { opacity: 0; transform: translateY(-50%) scale(0.5) rotate(30deg); }
+  30% { opacity: 1; transform: translateY(-50%) scale(1.2) rotate(10deg); }
+  60% { opacity: 1; transform: translateY(-50%) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-50%) scale(0.5) rotate(30deg); }
+}
+
+/* You can add SVG or emoji for firecracker inside the divs in OrderPlaced.tsx */
