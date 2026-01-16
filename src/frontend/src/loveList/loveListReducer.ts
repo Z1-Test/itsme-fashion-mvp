@@ -3,7 +3,7 @@
  * Manages love list state with localStorage persistence
  */
 
-import { LoveListState, LoveListAction, LoveListItem } from "../types/loveList";
+import { LoveListState, LoveListAction } from "../types/loveList";
 
 export const initialLoveListState: LoveListState = {
   items: [],

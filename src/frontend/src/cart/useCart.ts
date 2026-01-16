@@ -6,7 +6,7 @@
 
 import { useReducer, useEffect, useCallback } from "react";
 import { cartReducer, initialCartState } from "./cartReducer";
-import { CartItem } from "../types/cart";
+import { CartItem, CartState } from "../types/cart";
 import {
   saveCartToStorage,
   loadCartFromStorage,
@@ -90,7 +90,7 @@ export const useCart = () => {
       const cartSnap = await getDoc(cartDocRef);
       
       if (cartSnap.exists()) {
-        const firestoreCart = cartSnap.data();
+        const firestoreCart = cartSnap.data() as unknown as CartState;
         dispatch({ type: "LOAD_CART", payload: firestoreCart });
         console.log("✅ Cart loaded from Firestore");
       } else {
@@ -109,7 +109,7 @@ export const useCart = () => {
       const cartDocRef = doc(db, "users", userId, "cart", "data");
       const unsubscribe = onSnapshot(cartDocRef, (snapshot) => {
         if (snapshot.exists()) {
-          dispatch({ type: "LOAD_CART", payload: snapshot.data() });
+          dispatch({ type: "LOAD_CART", payload: snapshot.data() as unknown as CartState });
         }
       });
       return unsubscribe;
