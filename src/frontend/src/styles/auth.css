@@ -124,7 +124,7 @@
 .form-group input {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #e0e0e0;
+  border: 2px solid #000000;
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;
@@ -142,7 +142,7 @@
 }
 
 .form-group input:hover {
-  border-color: #cccccc;
+  border-color: #000000;
   background-color: #ffffff;
 }
 
