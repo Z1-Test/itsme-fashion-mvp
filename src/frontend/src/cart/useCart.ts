@@ -21,23 +21,30 @@ export const useCart = () => {
   const [state, dispatch] = useReducer(cartReducer, initialCartState);
   const firestoreSyncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
+  const stateRef = useRef(state);
+
+  // Keep stateRef in sync with state
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   // Sync cart to Firestore for authenticated users
   const syncCartToFirestore = useCallback(async (userId: string) => {
     if (!userId) return;
     try {
       const cartDocRef = doc(db, getUserCartDataPath(userId));
+      const currentState = stateRef.current;
       await setDoc(cartDocRef, {
-        items: state.items,
-        subtotal: state.subtotal,
-        itemCount: state.itemCount,
+        items: currentState.items,
+        subtotal: currentState.subtotal,
+        itemCount: currentState.itemCount,
         lastUpdated: Timestamp.now(),
       }, { merge: true });
       console.log("✅ Cart synced to Firestore");
     } catch (error) {
       console.error("❌ Failed to sync cart to Firestore:", error);
     }
-  }, [state.items, state.subtotal, state.itemCount]);
+  }, []);
 
   // Load cart from Firestore for authenticated users
   const loadCartFromFirestore = useCallback(async (userId: string) => {
@@ -76,23 +83,47 @@ export const useCart = () => {
     }
   }, []);
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount (for anonymous users only)
   useEffect(() => {
-    dispatch({ type: "SET_LOADING", payload: true });
-    const storedCart = loadCartFromStorage();
-    if (storedCart) {
-      dispatch({ type: "LOAD_CART", payload: storedCart });
-    } else {
-      dispatch({ type: "SET_LOADING", payload: false });
+    // Only load from localStorage if user is not authenticated
+    if (!user?.uid) {
+      dispatch({ type: "SET_LOADING", payload: true });
+      const storedCart = loadCartFromStorage();
+      if (storedCart) {
+        console.log(`📦 Anonymous user: Cart loaded from localStorage (${storedCart.items.length} items)`);
+        dispatch({ type: "LOAD_CART", payload: storedCart });
+      } else {
+        console.log('📦 Anonymous user: No cart in localStorage, starting fresh');
+        dispatch({ type: "SET_LOADING", payload: false });
+      }
     }
-  }, []);
+  }, [user?.uid]);
 
-  // Load from Firestore when user changes
+  // Load from Firestore when user authenticates
   useEffect(() => {
     if (user?.uid) {
+      console.log(`🔥 Authenticated user detected: Loading cart from Firestore (${user.uid})`);
       loadCartFromFirestore(user.uid);
+      
+      // Migrate localStorage cart to Firestore if it exists
+      const localCart = loadCartFromStorage();
+      if (localCart && localCart.items.length > 0) {
+        console.log(`📦➡️🔥 Migrating ${localCart.items.length} items from localStorage to Firestore`);
+        // Dispatch the loaded cart first, then sync
+        dispatch({
+          type: "LOAD_CART",
+          payload: {
+            items: localCart.items,
+            subtotal: localCart.subtotal,
+            itemCount: localCart.itemCount,
+            lastUpdated: localCart.lastUpdated,
+            isLoading: false,
+            error: null,
+          },
+        });
+      }
     }
-  }, [user?.uid, loadCartFromFirestore]);
+  }, [user?.uid]);
 
   // Subscribe to real-time Firestore updates
   useEffect(() => {
@@ -154,7 +185,7 @@ export const useCart = () => {
         syncCartToFirestore(user.uid);
       }, 500); // Debounce Firestore sync by 500ms
     }
-  }, [user?.uid, syncCartToFirestore]);
+  }, [user?.uid]);
 
   const removeItem = useCallback((productId: string) => {
     dispatch({ type: "REMOVE_ITEM", payload: productId });
@@ -168,7 +199,7 @@ export const useCart = () => {
         syncCartToFirestore(user.uid);
       }, 500);
     }
-  }, [user?.uid, syncCartToFirestore]);
+  }, [user?.uid]);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
     dispatch({ type: "UPDATE_QUANTITY", payload: { productId, quantity } });
@@ -182,16 +213,18 @@ export const useCart = () => {
         syncCartToFirestore(user.uid);
       }, 500);
     }
-  }, [user?.uid, syncCartToFirestore]);
+  }, [user?.uid]);
 
   const clearCart = useCallback(() => {
+    console.log('🗑️ Clearing cart');
     dispatch({ type: "CLEAR_CART" });
+    clearCartStorage();
     
     // Sync to Firestore if user is authenticated
     if (user?.uid) {
       syncCartToFirestore(user.uid);
     }
-  }, [user?.uid, syncCartToFirestore]);
+  }, [user?.uid]);
 
   return {
     cart: state,

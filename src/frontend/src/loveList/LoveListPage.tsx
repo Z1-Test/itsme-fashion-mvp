@@ -1,8 +1,21 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useLoveList } from "../loveList/useLoveList";
+import { useAuth } from "../hooks/useAuth";
 
 export const LoveListPage: React.FC = () => {
   const { loveList, removeItem } = useLoveList();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/signin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const totalValue = loveList.items.reduce((sum, item) => sum + item.price, 0);
 
@@ -29,6 +42,11 @@ export const LoveListPage: React.FC = () => {
               <a href="#" className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">
                 Account
               </a>
+              <button 
+                onClick={handleLogout}
+                className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">
+                Logout
+              </button>
               <a
                 href="/"
                 className="text-xs sm:text-sm font-light hover:opacity-70 transition-opacity"

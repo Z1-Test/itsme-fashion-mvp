@@ -8,7 +8,8 @@
     "import": "node import-products.js"
   },
   "dependencies": {
+    "csv-parse": "^5.5.3",
     "firebase": "^10.7.1",
-    "csv-parse": "^5.5.3"
+    "firebase-admin": "^13.6.0"
   }
 }

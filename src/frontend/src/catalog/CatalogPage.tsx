@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { useState, useEffect, useRef } from 'react';
+import { collection, getDocs, query, limit, startAfter } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../config/firebase';
+import { useAuth } from '../hooks/useAuth';
 import { useLoveList } from '../loveList/useLoveList';
+import { useWishlistFeatureFlag } from '../hooks/useFeatureFlag';
 import './CatalogPage.css';
+
+// Cache products data to reduce Firestore reads
+let productsCache: Product[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 interface Product {
   id: string;
@@ -32,27 +40,66 @@ interface Product {
 
 const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
   const { addItem: addToLoveList, removeItem: removeFromLoveList, isInLoveList } = useLoveList();
+  const { signOut } = useAuth();
+  const { enabled: wishlistEnabled } = useWishlistFeatureFlag();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const lastDocRef = useRef<any>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const PAGE_SIZE = 10; // Load 10 products per page
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/signin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  // Fetch initial batch of products with caching
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        
+        // Check cache first - reduces reads significantly
+        const now = Date.now();
+        if (productsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+          console.log('✅ Using cached products (5min cache)');
+          setProducts(productsCache.slice(0, PAGE_SIZE));
+          lastDocRef.current = productsCache[PAGE_SIZE - 1];
+          setHasMore(productsCache.length > PAGE_SIZE);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Only read from Firestore if cache expired
+        console.log(`📖 Reading from Firestore (1st page, limit=${PAGE_SIZE})`);
         const productsCollection = collection(db, 'products');
-        const productsSnapshot = await getDocs(productsCollection);
+        const productsQuery = query(productsCollection, limit(PAGE_SIZE));
+        const productsSnapshot = await getDocs(productsQuery);
         const productsData = productsSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as Product[];
-        console.log(`Fetched ${productsData.length} products from Firestore`);
-        console.log('Products:', productsData);
+        
+        // Update cache
+        productsCache = productsData;
+        cacheTimestamp = now;
+        
+        console.log(`✅ Fetched ${productsData.length} products (PAGE 1)`);
         setProducts(productsData);
+        lastDocRef.current = productsSnapshot.docs[productsData.length - 1] || null;
+        setHasMore(productsData.length >= PAGE_SIZE);
         setError(null);
       } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error('❌ Error fetching products:', err);
         setError('Failed to load products. Please try again later.');
       } finally {
         setLoading(false);
@@ -61,6 +108,47 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
 
     fetchProducts();
   }, []);
+
+  // Load more products on scroll (pagination)
+  const loadMoreProducts = async () => {
+    if (isLoadingMore || !hasMore || !lastDocRef.current) return;
+    
+    try {
+      setIsLoadingMore(true);
+      const productsCollection = collection(db, 'products');
+      const productsQuery = query(
+        productsCollection,
+        startAfter(lastDocRef.current),
+        limit(PAGE_SIZE)
+      );
+      const productsSnapshot = await getDocs(productsQuery);
+      const newProducts = productsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Product[];
+      
+      console.log(`✅ Fetched ${newProducts.length} more products (pagination)`);
+      setProducts(prev => [...prev, ...newProducts]);
+      lastDocRef.current = productsSnapshot.docs[newProducts.length - 1] || null;
+      setHasMore(newProducts.length >= PAGE_SIZE);
+    } catch (err) {
+      console.error('❌ Error loading more products:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Infinite scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+        loadMoreProducts();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isLoadingMore, hasMore, lastDocRef]);
 
   if (loading) {
     return (
@@ -117,7 +205,12 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
             {/* Right Menu */}
             <div className="flex items-center space-x-8">
               <a href="#" className="text-sm font-light hover:opacity-70 transition-opacity">Account</a>
-              <button className="text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
+              {wishlistEnabled && (
+                <a href="/wishlist" className="text-sm font-light hover:opacity-70 transition-opacity">Wishlist</a>
+              )}
               <a href="/cart" className="flex items-center space-x-2 hover:opacity-70 transition-opacity relative">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="9" cy="21" r="1"></circle>
@@ -174,25 +267,27 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
                     </h3>
                     <p className="text-xs text-gray-500 font-light">{product.shadeName}</p>
                   </div>
-                  <button 
-                    className={`ml-2 p-1 hover:opacity-70 transition-opacity ${isInLoveList(product.id) ? 'text-red-500' : 'text-gray-400'}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isInLoveList(product.id)) {
-                        removeFromLoveList(product.id);
-                      } else {
-                        addToLoveList({
-                          productId: product.id,
-                          name: product.name,
-                          price: product.price,
-                          imageUrl: product.image
-                        });
-                      }
-                    }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                  </button>
+                  {wishlistEnabled && (
+                    <button 
+                      className={`ml-2 p-1 hover:opacity-70 transition-opacity ${isInLoveList(product.id) ? 'text-red-500' : 'text-gray-400'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isInLoveList(product.id)) {
+                          removeFromLoveList(product.id);
+                        } else {
+                          addToLoveList({
+                            productId: product.id,
+                            name: product.name,
+                            price: product.price,
+                            imageUrl: product.image
+                          });
+                        }
+                      }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                    </button>
+                  )}
                 </div>
                 
                 {/* Price */}
@@ -219,6 +314,21 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
             </div>
           ))}
         </div>
+
+        {/* Loading More Indicator */}
+        {isLoadingMore && (
+          <div className="flex justify-center items-center py-12 mt-12 border-t border-gray-200">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+            <p className="ml-4 text-sm text-gray-500 font-light">Loading more products...</p>
+          </div>
+        )}
+
+        {/* No More Products */}
+        {!hasMore && products.length > 0 && (
+          <div className="flex justify-center items-center py-12 mt-12 border-t border-gray-200">
+            <p className="text-sm text-gray-500 font-light">No more products to load</p>
+          </div>
+        )}
         </div>
       </main>
 
@@ -379,25 +489,27 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
                     >
                       {selectedProduct.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                     </button>
-                    <button 
-                      className={`p-3 border transition-colors ${isInLoveList(selectedProduct.id) ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-black'}`}
-                      onClick={() => {
-                        if (isInLoveList(selectedProduct.id)) {
-                          removeFromLoveList(selectedProduct.id);
-                        } else {
-                          addToLoveList({
-                            productId: selectedProduct.id,
-                            name: selectedProduct.name,
-                            price: selectedProduct.price,
-                            imageUrl: selectedProduct.image
-                          });
-                        }
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isInLoveList(selectedProduct.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={isInLoveList(selectedProduct.id) ? 'text-red-500' : ''}>
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                      </svg>
-                    </button>
+                    {wishlistEnabled && (
+                      <button 
+                        className={`p-3 border transition-colors ${isInLoveList(selectedProduct.id) ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-black'}`}
+                        onClick={() => {
+                          if (isInLoveList(selectedProduct.id)) {
+                            removeFromLoveList(selectedProduct.id);
+                          } else {
+                            addToLoveList({
+                              productId: selectedProduct.id,
+                              name: selectedProduct.name,
+                              price: selectedProduct.price,
+                              imageUrl: selectedProduct.image
+                            });
+                          }
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isInLoveList(selectedProduct.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={isInLoveList(selectedProduct.id) ? 'text-red-500' : ''}>
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                      </button>
+                    )}
                   </div>
 
                   {/* Tagline */}

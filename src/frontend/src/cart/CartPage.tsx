@@ -6,7 +6,9 @@
  */
 
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from './useCart';
+import { useAuth } from '../hooks/useAuth';
 import { CartItem } from '../types/cart';
 
 interface CartPageProps {
@@ -15,6 +17,17 @@ interface CartPageProps {
 
 export const CartPage: React.FC<CartPageProps> = ({ cartHook }) => {
   const { cart, removeItem, updateQuantity, clearCart } = cartHook;
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/signin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     updateQuantity(productId, newQuantity);
@@ -66,7 +79,9 @@ export const CartPage: React.FC<CartPageProps> = ({ cartHook }) => {
             {/* Right Menu */}
             <div className="flex items-center space-x-3 sm:space-x-6 md:space-x-8">
               <a href="#" className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Account</a>
-              <button className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
+              <button 
+                onClick={handleLogout}
+                className="hidden sm:block text-xs sm:text-sm font-light hover:opacity-70 transition-opacity">Logout</button>
               <button 
                 onClick={() => window.location.href = '/'}
                 className="flex items-center space-x-1 sm:space-x-2 hover:opacity-70 transition-opacity">

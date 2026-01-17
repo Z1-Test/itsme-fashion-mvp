@@ -1,5 +1,4 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, connectFirestoreEmulator } from 'firebase/firestore';
+import { Firestore } from '@google-cloud/firestore';
 import { readFileSync } from 'fs';
 import { parse } from 'csv-parse/sync';
 import { fileURLToPath } from 'url';
@@ -8,23 +7,29 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Firebase configuration (minimal config for emulator)
-const firebaseConfig = {
-  apiKey: "demo-api-key",
-  authDomain: "localhost",
-  projectId: "dev-ecom-test",
-  storageBucket: "dev-ecom-test.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdefg12345"
-};
+// ============================================================================
+// Firestore Emulator Configuration
+// ============================================================================
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const USE_EMULATOR = process.env.USE_EMULATOR !== 'false';
 
-// Connect to Firestore Emulator
-connectFirestoreEmulator(db, 'localhost', 8080);
-console.log('🔧 Connected to Firestore Emulator on localhost:8080\n');
+// Set emulator host BEFORE creating Firestore instance
+if (USE_EMULATOR) {
+  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
+  console.log('🔥 EMULATOR MODE - Connecting to Firestore Emulator (localhost:8080)\n');
+} else {
+  console.log('🔧 PRODUCTION MODE - Using production Firebase\n');
+}
+
+// Initialize Firestore
+const db = new Firestore({
+  projectId: 'demo-project', // Demo project ID for emulator
+  useEmulator: USE_EMULATOR,
+  host: USE_EMULATOR ? 'localhost' : undefined,
+  port: USE_EMULATOR ? 8080 : undefined,
+});
+
+console.log(`Connected to Firestore${USE_EMULATOR ? ' Emulator' : ''}\n`);
 
 // Read and parse CSV
 const csvPath = join(__dirname, '../../../data/products.csv');
@@ -193,8 +198,7 @@ async function uploadProducts() {
       const productData = convertToFirestoreDoc(record);
       // Use row number to create unique document ID since Product IDs have duplicates
       const uniqueDocId = `product_${String(i + 1).padStart(3, '0')}`;
-      const docRef = doc(db, 'products', uniqueDocId);
-      await setDoc(docRef, productData);
+      await db.collection('products').doc(uniqueDocId).set(productData);
       
       successCount++;
       console.log(`✅ [${successCount}/${records.length}] Added: ${productData.name} - ${productData.shadeName}`);
