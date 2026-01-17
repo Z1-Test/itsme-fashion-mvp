@@ -204,7 +204,7 @@ const CatalogPage: React.FC<{ cartHook: any }> = ({ cartHook }) => {
 
             {/* Right Menu */}
             <div className="flex items-center space-x-8">
-              <a href="#" className="text-sm font-light hover:opacity-70 transition-opacity">Account</a>
+              <a href="/account" className="text-sm font-light hover:opacity-70 transition-opacity">Account</a>
               <button 
                 onClick={handleLogout}
                 className="text-sm font-light hover:opacity-70 transition-opacity">Logout</button>

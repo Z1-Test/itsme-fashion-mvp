@@ -3,6 +3,7 @@ import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import { Account } from './pages/Account';
 import CatalogPage from './catalog/CatalogPage';
 import { CartPage } from './cart/CartPage';
 import { LoveListPage } from './loveList/LoveListPage';
@@ -22,6 +23,7 @@ function AppRoutes() {
       <Route path="/shop" element={<ProtectedRoute><CatalogPage cartHook={cartHook} /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><CartPage cartHook={cartHook} /></ProtectedRoute>} />
       <Route path="/wishlist" element={<ProtectedRoute><LoveListPage /></ProtectedRoute>} />
+      <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
 
       {/* Redirect unknown routes to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
