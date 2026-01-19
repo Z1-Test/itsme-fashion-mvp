@@ -1,5 +1,5 @@
 {
-  "name": "@itsme/service-cart",
+  "name": "@itsme/service-wishlist",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",

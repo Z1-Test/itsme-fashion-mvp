@@ -3,6 +3,17 @@
   "version": "1.0.0",
   "description": "It's Me Fashion - Monorepo with Lit + Vite + Firebase",
   "main": "lib/index.js",
+  "workspaces": [
+    "src/app",
+    "src/packages/design-system",
+    "src/packages/shared-utils",
+    "src/services/cart",
+    "src/services/catalog",
+    "src/services/delivery",
+    "src/services/identity",
+    "src/services/payments",
+    "src/services/wishList"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "firebase emulators:start",

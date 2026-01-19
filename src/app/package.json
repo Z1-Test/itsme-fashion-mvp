@@ -1,0 +1,26 @@
+{
+  "name": "@itsme/app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@itsme/design-system": "*",
+    "@itsme/shared-utils": "*",
+    "@itsme/service-catalog": "*",
+    "@itsme/service-identity": "*",
+    "@itsme/service-cart": "*",
+    "@itsme/service-payments": "*",
+    "@itsme/service-delivery": "*",
+    "lit": "^3.1.0",
+    "firebase": "^10.7.0",
+    "@vaadin/router": "^1.7.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
+  }
+}
