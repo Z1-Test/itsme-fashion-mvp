@@ -13,12 +13,14 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
     "baseUrl": ".",
     "paths": {
       "@services/*": ["src/services/*/src"],
       "@packages/*": ["src/packages/*/src"]
     }
   },
-  "include": ["index.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  "include": ["index.ts", "src/services/**/*.ts"],
+  "exclude": ["node_modules", "dist", "coverage", "src/app", "src/packages"]
 }

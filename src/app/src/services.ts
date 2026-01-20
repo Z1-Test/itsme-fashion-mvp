@@ -1,9 +1,33 @@
-import { CatalogService } from "@itsme/catalog";
-import { IdentityService } from "@itsme/identity";
-import { CartService } from "@itsme/cart";
-import { PaymentService } from "@itsme/payments";
-import { DeliveryService } from "@itsme/delivery";
+// import { CatalogService } from "@itsme/catalog";
+// import { IdentityService } from "@itsme/identity";
+// import { CartService } from "@itsme/cart";
+// import { PaymentService } from "@itsme/payments";
+// import { DeliveryService } from "@itsme/delivery";
 import { auth, db } from "./firebase";
+
+// Stub services - TODO: Replace with actual service implementations
+class CatalogService {
+  constructor(public db: any) {}
+}
+
+class IdentityService {
+  constructor(
+    public auth: any,
+    public db: any,
+  ) {}
+}
+
+class CartService {
+  constructor(public db: any) {}
+}
+
+class PaymentService {
+  constructor(public db: any) {}
+}
+
+class DeliveryService {
+  constructor(public db: any) {}
+}
 
 // Initialize all services
 export const catalogService = new CatalogService(db);
