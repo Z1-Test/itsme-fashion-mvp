@@ -74,10 +74,12 @@ export class PageProducts extends LitElement {
       <div class="products-grid">
         ${this.products.map(
           (product) => html`
-            <itsme-product-card
-              .product=${product}
-              @itsme-add-to-cart=${this._handleAddToCart}
-            ></itsme-product-card>
+            <a
+              href="/product/${product.id}"
+              style="text-decoration: none; color: inherit; display: block;"
+            >
+              <itsme-product-card .product=${product}></itsme-product-card>
+            </a>
           `,
         )}
       </div>
@@ -100,35 +102,5 @@ export class PageProducts extends LitElement {
     this.products = MOCK_PRODUCTS;
 
     this.loading = false;
-  }
-
-  private _handleAddToCart(e: CustomEvent) {
-    const { product, quantity } = e.detail;
-
-    // Get existing cart from localStorage
-    const cartData = localStorage.getItem("cart");
-    const cart = cartData ? JSON.parse(cartData) : { items: [] };
-
-    // Check if product already exists in cart
-    const existingItem = cart.items.find(
-      (item: any) => item.productId === product.id,
-    );
-
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.items.push({
-        productId: product.id,
-        product: product,
-        quantity: quantity,
-        price: product.price,
-      });
-    }
-
-    // Save cart
-    localStorage.setItem("cart", JSON.stringify(cart));
-
-    // Show notification using the notification service
-    NotificationService.success(`Added ${quantity} × ${product.name} to cart!`);
   }
 }

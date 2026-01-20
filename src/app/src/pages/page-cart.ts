@@ -1,12 +1,14 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
+import { NotificationService } from "../../../packages/design-system/src/notification-service";
 
 interface CartItem {
   productId: string;
   product: any;
   quantity: number;
   price: number;
+  selectedShade?: any;
 }
 
 @customElement("page-cart")
@@ -76,6 +78,27 @@ export class PageCart extends LitElement {
     .item-price {
       font-weight: 600;
       color: #000;
+    }
+
+    .item-shade {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      color: #555;
+    }
+
+    .shade-swatch-cart {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    }
+
+    .shade-name {
+      font-weight: 500;
     }
 
     .item-controls {
@@ -245,7 +268,7 @@ export class PageCart extends LitElement {
 
     const subtotal = this.cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0
+      0,
     );
     const shipping = subtotal > 500 ? 0 : 50;
     const total = subtotal + shipping;
@@ -266,6 +289,21 @@ export class PageCart extends LitElement {
                 <div class="item-details">
                   <div class="item-name">${item.product.name}</div>
                   <div class="item-brand">${item.product.brand}</div>
+                  ${item.selectedShade
+                    ? html`
+                        <div class="item-shade">
+                          <span
+                            class="shade-swatch-cart"
+                            style="background-color: ${item.selectedShade
+                              .hexCode}"
+                            title=${item.selectedShade.name}
+                          ></span>
+                          <span class="shade-name"
+                            >${item.selectedShade.name}</span
+                          >
+                        </div>
+                      `
+                    : ""}
                   <div class="item-price">
                     ${formatCurrency(item.price)} × ${item.quantity} =
                     ${formatCurrency(item.price * item.quantity)}
@@ -289,13 +327,14 @@ export class PageCart extends LitElement {
                   </div>
                   <button
                     class="remove-btn"
-                    @click=${() => this._removeItem(item.productId)}
+                    @click=${() =>
+                      this._removeItem(item.productId, item.selectedShade)}
                   >
                     Remove
                   </button>
                 </div>
               </div>
-            `
+            `,
           )}
         </div>
 
@@ -344,8 +383,18 @@ export class PageCart extends LitElement {
     }
   }
 
-  private _updateQuantity(productId: string, change: number) {
-    const item = this.cartItems.find((i) => i.productId === productId);
+  private _updateQuantity(
+    productId: string,
+    change: number,
+    selectedShade?: any,
+  ) {
+    const item = this.cartItems.find((i) => {
+      const isSameProduct = i.productId === productId;
+      const isSameShade = selectedShade
+        ? i.selectedShade?.hexCode === selectedShade.hexCode
+        : !i.selectedShade;
+      return isSameProduct && isSameShade;
+    });
     if (item) {
       const newQuantity = item.quantity + change;
       if (newQuantity > 0 && newQuantity <= item.product.stock) {
@@ -355,8 +404,29 @@ export class PageCart extends LitElement {
     }
   }
 
-  private _removeItem(productId: string) {
-    this.cartItems = this.cartItems.filter((i) => i.productId !== productId);
+  private _removeItem(productId: string, selectedShade?: any) {
+    const itemToRemove = this.cartItems.find((i) => {
+      const isSameProduct = i.productId === productId;
+      const isSameShade = selectedShade
+        ? i.selectedShade?.hexCode === selectedShade.hexCode
+        : !i.selectedShade;
+      return isSameProduct && isSameShade;
+    });
+
+    if (itemToRemove) {
+      NotificationService.info(
+        `Removed ${itemToRemove.product.name} from cart`,
+      );
+    }
+
+    this.cartItems = this.cartItems.filter((i) => {
+      const isSameProduct = i.productId !== productId;
+      if (isSameProduct) return true;
+      const isSameShade = selectedShade
+        ? i.selectedShade?.hexCode === selectedShade.hexCode
+        : !i.selectedShade;
+      return !isSameShade;
+    });
     this._saveCart();
   }
 

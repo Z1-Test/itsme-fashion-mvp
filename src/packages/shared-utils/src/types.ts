@@ -16,12 +16,20 @@ export interface Product {
   ethicalMarkers?: string[]; // Array format for easier display
   createdAt?: string;
   updatedAt?: string;
+  tagline?: string;
+  longDescription?: string;
+  benefits?: string;
+  caution?: string;
+  shippingInfo?: string;
+  quantity?: string;
 }
 
 export interface ProductShade {
   name: string;
   hexCode: string;
   stock: number;
+  sku?: string;
+  code?: string;
 }
 
 export interface EthicalMarkers {

@@ -1,6 +1,7 @@
 // Import all pages
 import "./pages/page-home.js";
 import "./pages/page-products.js";
+import "./pages/page-product-detail.js";
 import "./pages/page-cart.js";
 import "./pages/page-checkout.js";
 import "./pages/page-login.js";

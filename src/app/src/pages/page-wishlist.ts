@@ -182,7 +182,6 @@ export class PageWishlist extends LitElement {
               <itsme-product-card
                 .product=${product}
                 .isWishlisted=${true}
-                @itsme-add-to-cart=${this._handleAddToCart}
                 @itsme-wishlist-toggle=${this._handleWishlistToggle}
               ></itsme-product-card>
             `,
@@ -228,36 +227,6 @@ export class PageWishlist extends LitElement {
       .filter((p: Product | undefined) => p !== undefined) as Product[];
 
     this.loading = false;
-  }
-
-  private _handleAddToCart(e: CustomEvent) {
-    const { product, quantity } = e.detail;
-
-    // Get existing cart from localStorage
-    const cartData = localStorage.getItem("cart");
-    const cart = cartData ? JSON.parse(cartData) : { items: [] };
-
-    // Check if product already exists in cart
-    const existingItem = cart.items.find(
-      (item: any) => item.productId === product.id,
-    );
-
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.items.push({
-        productId: product.id,
-        product: product,
-        quantity: quantity,
-        price: product.price,
-      });
-    }
-
-    // Save cart
-    localStorage.setItem("cart", JSON.stringify(cart));
-
-    // Show notification
-    NotificationService.success(`Added ${quantity} × ${product.name} to cart!`);
   }
 
   private _handleWishlistToggle(e: CustomEvent) {

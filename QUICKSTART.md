@@ -9,6 +9,7 @@
 ## Installation
 
 1. **Install all dependencies:**
+
    ```bash
    npm install
    ```
@@ -65,6 +66,7 @@ npm run build
 ```
 
 This builds:
+
 1. Shared packages (shared-utils, design-system)
 2. Firebase Cloud Functions services
 
@@ -95,13 +97,13 @@ src/
 
 ## Common Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev:app` | Start frontend dev server |
-| `npm run dev:full` | Start frontend + backend together |
-| `npm run build` | Build packages and services |
-| `npm run build:app` | Build frontend only |
-| `npm run emulators:start` | Start Firebase emulators |
+| Command                   | Description                       |
+| ------------------------- | --------------------------------- |
+| `npm run dev:app`         | Start frontend dev server         |
+| `npm run dev:full`        | Start frontend + backend together |
+| `npm run build`           | Build packages and services       |
+| `npm run build:app`       | Build frontend only               |
+| `npm run emulators:start` | Start Firebase emulators          |
 
 ## Ports
 
@@ -116,6 +118,7 @@ src/
 ## IDE Setup (VS Code)
 
 Recommended extensions:
+
 - ESLint
 - Prettier
 - lit-plugin (for Lit components)
@@ -126,18 +129,22 @@ The project is configured with TypeScript project references, so IntelliSense wi
 ## Troubleshooting
 
 **Port already in use:**
+
 - Check if another process is using port 3000 or 5001
 - Kill the process or change ports in configuration files
 
 **Module not found:**
+
 - Run `npm install` at the root
 - Run `npm run build:packages` to build shared libraries
 
 **TypeScript errors in editor:**
+
 - Build packages: `npm run build:packages`
 - Reload VS Code window
 
 **Firebase emulator issues:**
+
 - Ensure Firebase CLI is installed: `npm install -g firebase-tools`
 - Login to Firebase: `firebase login`
 
