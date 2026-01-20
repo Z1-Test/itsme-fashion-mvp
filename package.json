@@ -2,11 +2,13 @@
   "name": "itsme-fashion-mvp",
   "version": "1.0.0",
   "description": "It's Me Fashion - Monorepo with Lit + Vite + Firebase",
+  "type": "module",
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "firebase emulators:start",
     "emulators:start": "npm run build && firebase emulators:start",
+    "import-csv": "node scripts/csv-to-firestore/index.js",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "vitest"
   },
