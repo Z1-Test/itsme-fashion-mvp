@@ -6,6 +6,8 @@ import "./pages/page-cart.js";
 import "./pages/page-checkout.js";
 import "./pages/page-login.js";
 import "./pages/page-register.js";
+import "./pages/page-profile.js";
+import "./pages/page-orders.js";
 import "./pages/page-wishlist.js";
 import "./pages/page-not-found.js";
 

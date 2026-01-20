@@ -139,11 +139,10 @@ export class AppShell extends LitElement {
           <nav>
             <a href="/products">Products</a>
             <a href="/cart">Cart</a>
+            <a href="/wishlist">Wishlist</a>
             ${this.currentUser
               ? html`
                   <div class="user-menu">
-                    <a href="/orders">Orders</a>
-                    <a href="/wishlist">Wishlist</a>
                     <a href="/profile">Profile</a>
                     <itsme-button
                       size="small"

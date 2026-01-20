@@ -9,6 +9,15 @@ interface CartItem {
   price: number;
 }
 
+interface SavedAddress {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  phone?: string;
+  label?: string;
+}
+
 @customElement("page-checkout")
 export class PageCheckout extends LitElement {
   static styles = css`
@@ -209,6 +218,109 @@ export class PageCheckout extends LitElement {
     .continue-btn:hover {
       background: #333;
     }
+
+    .address-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .saved-address-display {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .saved-address-label {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .saved-address-text {
+      color: #166534;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      margin: 0.5rem 0;
+    }
+
+    .saved-address-text strong {
+      font-weight: 600;
+    }
+
+    .address-toggle-btn {
+      padding: 0.5rem 1rem;
+      background: #e5e7eb;
+      color: #000;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    .address-toggle-btn:hover {
+      background: #d1d5db;
+    }
+
+    .address-form {
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      margin-bottom: 1rem;
+    }
+
+    .address-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .btn-save {
+      padding: 0.75rem 1.5rem;
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn-save:hover {
+      background: #333;
+    }
+
+    .btn-cancel {
+      padding: 0.75rem 1.5rem;
+      background: #e5e7eb;
+      color: #000;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: #d1d5db;
+    }
   `;
 
   @state() private cartItems: CartItem[] = [];
@@ -216,10 +328,58 @@ export class PageCheckout extends LitElement {
   @state() private processing = false;
   @state() private orderPlaced = false;
   @state() private orderId = "";
+  @state() private savedAddress: SavedAddress | null = null;
+  @state() private editingAddress = false;
+  @state() private editFormData: SavedAddress = {
+    street: "",
+    city: "",
+    state: "",
+    zip: "",
+    phone: "",
+    label: "Home",
+  };
 
   connectedCallback() {
     super.connectedCallback();
     this._loadCart();
+    this._loadSavedAddress();
+  }
+
+  private _loadSavedAddress() {
+    const addressData = localStorage.getItem("savedAddress");
+    if (addressData) {
+      try {
+        this.savedAddress = JSON.parse(addressData);
+      } catch (e) {
+        console.error("Error parsing address:", e);
+      }
+    }
+  }
+
+  private _toggleAddressEdit() {
+    if (!this.editingAddress && this.savedAddress) {
+      this.editFormData = { ...this.savedAddress };
+    } else if (!this.editingAddress) {
+      this.editFormData = {
+        street: "",
+        city: "",
+        state: "",
+        zip: "",
+        phone: "",
+        label: "Home",
+      };
+    }
+    this.editingAddress = !this.editingAddress;
+  }
+
+  private _updateAddressField(field: keyof SavedAddress, value: string) {
+    this.editFormData = { ...this.editFormData, [field]: value };
+  }
+
+  private _saveAddress() {
+    this.savedAddress = { ...this.editFormData };
+    localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
+    this.editingAddress = false;
   }
 
   render() {
@@ -251,7 +411,7 @@ export class PageCheckout extends LitElement {
 
     const subtotal = this.cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0
+      0,
     );
     const shipping = subtotal > 500 ? 0 : 50;
     const total = subtotal + shipping;
@@ -265,50 +425,141 @@ export class PageCheckout extends LitElement {
 
       <div class="checkout-container">
         <div class="section">
-          <div class="section-title">Shipping Address</div>
-          <div class="form-group">
-            <label for="name">Full Name</label>
-            <input id="name" type="text" placeholder="John Doe" required />
+          <div class="address-header">
+            <div class="section-title">Shipping Address</div>
+            ${this.savedAddress && !this.editingAddress
+              ? html`<button
+                  class="address-toggle-btn"
+                  @click=${this._toggleAddressEdit}
+                >
+                  Edit Address
+                </button>`
+              : html``}
           </div>
-          <div class="form-group">
-            <label for="address">Address</label>
-            <input
-              id="address"
-              type="text"
-              placeholder="123 Main Street"
-              required
-            />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="city">City</label>
-              <input id="city" type="text" placeholder="Mumbai" required />
-            </div>
-            <div class="form-group">
-              <label for="pincode">Pincode</label>
-              <input id="pincode" type="text" placeholder="400001" required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="state">State</label>
-              <input
-                id="state"
-                type="text"
-                placeholder="Maharashtra"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="phone">Phone</label>
-              <input
-                id="phone"
-                type="tel"
-                placeholder="+91 98765 43210"
-                required
-              />
-            </div>
-          </div>
+
+          ${this.editingAddress
+            ? html`
+                <div class="address-form">
+                  <div class="form-group">
+                    <label>Label</label>
+                    <input
+                      type="text"
+                      .value=${this.editFormData.label || ""}
+                      @input=${(e: any) =>
+                        this._updateAddressField("label", e.target.value)}
+                      placeholder="e.g., Home, Office"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input
+                      type="tel"
+                      .value=${this.editFormData.phone || ""}
+                      @input=${(e: any) =>
+                        this._updateAddressField("phone", e.target.value)}
+                      placeholder="+91 98765 43210"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Street Address</label>
+                    <input
+                      type="text"
+                      .value=${this.editFormData.street || ""}
+                      @input=${(e: any) =>
+                        this._updateAddressField("street", e.target.value)}
+                      placeholder="123 Fashion Street"
+                    />
+                  </div>
+
+                  <div class="address-form-row">
+                    <div class="form-group">
+                      <label>City</label>
+                      <input
+                        type="text"
+                        .value=${this.editFormData.city || ""}
+                        @input=${(e: any) =>
+                          this._updateAddressField("city", e.target.value)}
+                        placeholder="Mumbai"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>State</label>
+                      <input
+                        type="text"
+                        .value=${this.editFormData.state || ""}
+                        @input=${(e: any) =>
+                          this._updateAddressField("state", e.target.value)}
+                        placeholder="Maharashtra"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Postal Code</label>
+                    <input
+                      type="text"
+                      .value=${this.editFormData.zip || ""}
+                      @input=${(e: any) =>
+                        this._updateAddressField("zip", e.target.value)}
+                      placeholder="400001"
+                    />
+                  </div>
+
+                  <div class="form-buttons">
+                    <button class="btn-save" @click=${this._saveAddress}>
+                      Save Address
+                    </button>
+                    <button
+                      class="btn-cancel"
+                      @click=${this._toggleAddressEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              `
+            : html`
+                ${this.savedAddress
+                  ? html`
+                      <div class="saved-address-display">
+                        <div class="saved-address-label">
+                          ${this.savedAddress.label || "Home"}
+                        </div>
+                        <div class="saved-address-text">
+                          <strong>${this.savedAddress.street}</strong><br />
+                          ${this.savedAddress.city}, ${this.savedAddress.state}
+                          - ${this.savedAddress.zip}<br />
+                          <br />
+                          <strong>Phone:</strong> ${this.savedAddress.phone}
+                        </div>
+                        <button
+                          class="address-toggle-btn"
+                          @click=${this._toggleAddressEdit}
+                          style="margin-top: 1rem;"
+                        >
+                          Edit Address
+                        </button>
+                      </div>
+                    `
+                  : html`
+                      <div
+                        style="padding: 1rem; background: #fef3c7; border-radius: 0.375rem; margin-bottom: 1rem;"
+                      >
+                        <p style="color: #92400e; margin: 0;">
+                          No saved address found. Please add one below.
+                        </p>
+                      </div>
+                      <button
+                        class="address-toggle-btn"
+                        @click=${this._toggleAddressEdit}
+                        style="background: #000; color: white; border: none; cursor: pointer;"
+                      >
+                        + Add Address
+                      </button>
+                    `}
+              `}
         </div>
 
         <div class="section">
@@ -403,20 +654,43 @@ export class PageCheckout extends LitElement {
     // Simulate payment processing
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
+    // Check if address is saved
+    if (!this.savedAddress) {
+      alert("Please add and save your shipping address first.");
+      this.processing = false;
+      return;
+    }
+
     // Generate order ID
     this.orderId = `ORD${Date.now().toString(36).toUpperCase()}`;
+
+    const subtotal = this.cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    const shipping = subtotal > 500 ? 0 : 50;
+    const total = subtotal + shipping;
 
     // Save order to localStorage
     const orders = JSON.parse(localStorage.getItem("orders") || "[]");
     const order = {
       id: this.orderId,
-      items: this.cartItems,
+      orderDate: new Date().toLocaleDateString(),
+      items: this.cartItems.map((item) => ({
+        productName: item.product.name || item.productId,
+        quantity: item.quantity,
+        price: item.price * item.quantity,
+        image: item.product.imageUrl || item.product.image,
+      })),
       paymentMethod: this.paymentMethod,
-      total: this.cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      ),
-      status: this.paymentMethod === "cod" ? "pending" : "paid",
+      total: total,
+      status: "confirmed",
+      shippingAddress: {
+        street: this.savedAddress.street,
+        city: this.savedAddress.city,
+        state: this.savedAddress.state,
+        zip: this.savedAddress.zip,
+      },
       createdAt: new Date().toISOString(),
     };
     orders.push(order);
