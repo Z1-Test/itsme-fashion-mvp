@@ -12,34 +12,99 @@ export class PageProducts extends LitElement {
     }
 
     h1 {
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
     }
 
     .filters {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       margin-bottom: 2rem;
       flex-wrap: wrap;
     }
 
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
     }
 
     .loading {
       text-align: center;
-      padding: 4rem;
+      padding: 3rem 1rem;
       color: #666;
     }
 
     .error {
-      padding: 2rem;
+      padding: 1.5rem 1rem;
       background: #fee;
       border: 1px solid #fcc;
       border-radius: 0.5rem;
       color: #c00;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 1024px) {
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.25rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .filters {
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+      }
+
+      .loading {
+        padding: 2rem 0.75rem;
+      }
+
+      .error {
+        padding: 1rem 0.75rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        display: block;
+        overflow-x: hidden;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+      }
+
+      .filters {
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .products-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .loading {
+        padding: 1.5rem 0.5rem;
+      }
+
+      .error {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+      }
     }
   `;
 

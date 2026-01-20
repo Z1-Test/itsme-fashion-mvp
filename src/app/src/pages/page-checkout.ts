@@ -25,44 +25,47 @@ export class PageCheckout extends LitElement {
       display: block;
       max-width: 800px;
       margin: 0 auto;
+      padding: 0 1rem;
     }
 
     h1 {
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
     }
 
     .checkout-container {
       display: grid;
-      gap: 2rem;
+      gap: 1.5rem;
     }
 
     .section {
       background: white;
       border: 1px solid #e5e5e5;
       border-radius: 0.5rem;
-      padding: 1.5rem;
+      padding: 1.25rem;
     }
 
     .section-title {
-      font-size: 1.25rem;
+      font-size: 1.125rem;
       font-weight: 600;
       margin-bottom: 1rem;
     }
 
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
       font-weight: 500;
+      font-size: 0.95rem;
     }
 
     input,
     select {
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.65rem;
       border: 1px solid #e5e5e5;
       border-radius: 0.375rem;
       font-size: 1rem;
@@ -91,8 +94,8 @@ export class PageCheckout extends LitElement {
     .summary-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 0.75rem;
-      font-size: 0.9375rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
     }
 
     .summary-total {
@@ -101,25 +104,25 @@ export class PageCheckout extends LitElement {
       margin-top: 1rem;
       padding-top: 1rem;
       border-top: 2px solid #e5e5e5;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
     }
 
     .payment-methods {
       display: grid;
-      gap: 0.75rem;
+      gap: 0.5rem;
       margin-bottom: 1rem;
     }
 
     .payment-method {
-      padding: 1rem;
+      padding: 0.75rem;
       border: 2px solid #e5e5e5;
       border-radius: 0.375rem;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .payment-method:hover {
@@ -132,7 +135,8 @@ export class PageCheckout extends LitElement {
     }
 
     .payment-method-icon {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
+      flex-shrink: 0;
     }
 
     .payment-method-info {
@@ -141,17 +145,18 @@ export class PageCheckout extends LitElement {
 
     .payment-method-name {
       font-weight: 600;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
+      font-size: 0.95rem;
     }
 
     .payment-method-desc {
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       color: #666;
     }
 
     .place-order-btn {
       width: 100%;
-      padding: 1rem;
+      padding: 0.75rem;
       background: #000;
       color: white;
       border: none;
@@ -174,9 +179,9 @@ export class PageCheckout extends LitElement {
       background: #eff6ff;
       border: 1px solid #bfdbfe;
       border-radius: 0.375rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.875rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.8rem;
       color: #1e40af;
     }
 
@@ -184,29 +189,30 @@ export class PageCheckout extends LitElement {
       background: #f0fdf4;
       border: 1px solid #86efac;
       border-radius: 0.5rem;
-      padding: 2rem;
+      padding: 1.5rem;
       text-align: center;
     }
 
     .success-icon {
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
     }
 
     .success-title {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
 
     .success-message p {
-      margin: 0.5rem 0;
+      margin: 0.4rem 0;
       color: #166534;
+      font-size: 0.95rem;
     }
 
     .continue-btn {
-      margin-top: 1.5rem;
-      padding: 0.75rem 1.5rem;
+      margin-top: 1rem;
+      padding: 0.65rem 1.2rem;
       background: #000;
       color: white;
       border: none;
@@ -224,23 +230,25 @@ export class PageCheckout extends LitElement {
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
     .saved-address-display {
       background: #f0fdf4;
       border: 1px solid #86efac;
       border-radius: 0.375rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
     }
 
     .saved-address-label {
       display: inline-block;
       background: #dcfce7;
       color: #166534;
-      padding: 0.25rem 0.75rem;
+      padding: 0.2rem 0.6rem;
       border-radius: 0.25rem;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
       text-transform: uppercase;
       margin-bottom: 0.5rem;
@@ -320,6 +328,247 @@ export class PageCheckout extends LitElement {
 
     .btn-cancel:hover {
       background: #d1d5db;
+    }
+
+    @media (max-width: 768px) {
+      :host {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .section-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      label {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+      }
+
+      input,
+      select {
+        padding: 0.6rem;
+        font-size: 0.95rem;
+      }
+
+      .order-summary {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .summary-row {
+        margin-bottom: 0.4rem;
+        font-size: 0.8rem;
+      }
+
+      .summary-total {
+        font-size: 1rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+      }
+
+      .payment-method {
+        padding: 0.6rem;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .payment-method-icon {
+        font-size: 1.1rem;
+      }
+
+      .payment-method-name {
+        font-size: 0.9rem;
+        margin-bottom: 0.15rem;
+      }
+
+      .payment-method-desc {
+        font-size: 0.75rem;
+      }
+
+      .place-order-btn {
+        padding: 0.65rem;
+        font-size: 0.95rem;
+        margin-top: 0.75rem;
+      }
+
+      .success-message {
+        padding: 1.25rem;
+      }
+
+      .success-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .success-title {
+        font-size: 1.1rem;
+      }
+
+      .success-message p {
+        margin: 0.3rem 0;
+        font-size: 0.9rem;
+      }
+
+      .continue-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+      }
+
+      .address-header {
+        margin-bottom: 0.75rem;
+        gap: 0.5rem;
+      }
+
+      .saved-address-display {
+        padding: 0.6rem;
+        margin-bottom: 0.6rem;
+        font-size: 0.85rem;
+      }
+
+      .saved-address-label {
+        padding: 0.15rem 0.5rem;
+        font-size: 0.65rem;
+      }
+
+      .btn-cancel,
+      .btn-edit {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        padding: 0.75rem;
+        overflow-x: hidden;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .section {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        border-radius: 0.375rem;
+      }
+
+      .section-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+      }
+
+      label {
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+      }
+
+      input,
+      select {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .form-group {
+        margin-bottom: 0.5rem;
+      }
+
+      .order-summary {
+        padding: 0.6rem;
+        margin-bottom: 0.6rem;
+      }
+
+      .summary-row {
+        font-size: 0.75rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .summary-total {
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+      }
+
+      .payment-method {
+        padding: 0.5rem;
+        gap: 0.4rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .payment-method-icon {
+        font-size: 1rem;
+      }
+
+      .payment-method-name {
+        font-size: 0.85rem;
+      }
+
+      .payment-method-desc {
+        font-size: 0.7rem;
+      }
+
+      .place-order-btn {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+
+      .success-message {
+        padding: 1rem;
+      }
+
+      .success-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .success-title {
+        font-size: 1rem;
+      }
+
+      .success-message p {
+        font-size: 0.8rem;
+      }
+
+      .continue-btn {
+        padding: 0.55rem 0.9rem;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+      }
+
+      .address-header {
+        margin-bottom: 0.5rem;
+      }
+
+      .saved-address-display {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+      }
+
+      .btn-cancel,
+      .btn-edit {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.75rem;
+      }
     }
   `;
 

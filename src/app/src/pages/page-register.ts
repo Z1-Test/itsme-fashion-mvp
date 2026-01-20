@@ -8,35 +8,38 @@ export class PageRegister extends LitElement {
       display: block;
       max-width: 400px;
       margin: 2rem auto;
+      padding: 1rem;
     }
 
     .register-card {
       background: white;
       border: 1px solid #e5e5e5;
       border-radius: 0.5rem;
-      padding: 2rem;
+      padding: 1.75rem;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
       margin-top: 0;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       text-align: center;
+      font-size: 1.5rem;
     }
 
     .form-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
     }
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
       font-weight: 500;
+      font-size: 0.95rem;
     }
 
     input {
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.65rem;
       border: 1px solid #e5e5e5;
       border-radius: 0.375rem;
       font-size: 1rem;
@@ -50,20 +53,20 @@ export class PageRegister extends LitElement {
 
     .error {
       color: #dc2626;
-      font-size: 0.875rem;
-      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
     }
 
     .register-btn {
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.65rem;
       background: #000;
       color: white;
       border: none;
       border-radius: 0.375rem;
       cursor: pointer;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     .register-btn:hover {
@@ -77,8 +80,9 @@ export class PageRegister extends LitElement {
 
     .login-link {
       text-align: center;
-      margin-top: 1.5rem;
+      margin-top: 1.25rem;
       color: #666;
+      font-size: 0.9rem;
     }
 
     .login-link a {
@@ -95,10 +99,57 @@ export class PageRegister extends LitElement {
       background: #eff6ff;
       border: 1px solid #bfdbfe;
       border-radius: 0.375rem;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.875rem;
+      padding: 0.75rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.8rem;
       color: #1e40af;
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        padding: 0.75rem;
+        margin: 1.5rem auto;
+        overflow-x: hidden;
+      }
+
+      .register-card {
+        padding: 1.25rem;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      label {
+        margin-bottom: 0.3rem;
+        font-size: 0.9rem;
+      }
+
+      input {
+        padding: 0.6rem;
+        font-size: 0.95rem;
+      }
+
+      .register-btn {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+      }
+
+      .login-link {
+        margin-top: 1rem;
+        font-size: 0.85rem;
+      }
+
+      .info {
+        padding: 0.6rem;
+        margin-bottom: 1rem;
+        font-size: 0.75rem;
+      }
     }
   `;
 

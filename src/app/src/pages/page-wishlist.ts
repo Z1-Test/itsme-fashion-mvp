@@ -14,27 +14,29 @@ export class PageWishlist extends LitElement {
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 1.5rem;
     }
 
     h1 {
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
     }
 
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
     }
 
     .empty-state {
       text-align: center;
-      padding: 4rem 2rem;
+      padding: 3rem 1rem;
       color: #666;
     }
 
     .empty-state h2 {
       margin-bottom: 1rem;
+      font-size: 1.25rem;
     }
 
     .empty-state a {
@@ -46,6 +48,7 @@ export class PageWishlist extends LitElement {
       border-radius: 0.375rem;
       text-decoration: none;
       font-weight: 600;
+      font-size: 0.95rem;
     }
 
     .empty-state a:hover {
@@ -61,11 +64,12 @@ export class PageWishlist extends LitElement {
     }
 
     .wishlist-item-image {
-      width: 120px;
-      height: 120px;
+      width: 100px;
+      height: 100px;
       background-color: #f5f5f5;
       border-radius: 0.375rem;
       overflow: hidden;
+      flex-shrink: 0;
     }
 
     .wishlist-item-image img {
@@ -83,18 +87,19 @@ export class PageWishlist extends LitElement {
 
     .wishlist-item-title {
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.3;
     }
 
     .wishlist-item-brand {
       color: #666;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
     }
 
     .wishlist-item-price {
-      font-size: 1.125rem;
+      font-size: 1rem;
       font-weight: 700;
-      margin: 0.5rem 0;
+      margin: 0.4rem 0;
     }
 
     .wishlist-item-actions {
@@ -135,6 +140,132 @@ export class PageWishlist extends LitElement {
 
     .remove-btn:hover {
       background: #fdd;
+    }
+
+    @media (max-width: 1024px) {
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.25rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+      }
+
+      .wishlist-item {
+        padding: 0.75rem;
+        gap: 0.75rem;
+      }
+
+      .wishlist-item-image {
+        width: 80px;
+        height: 80px;
+      }
+
+      .wishlist-item-title {
+        font-size: 0.9rem;
+      }
+
+      .wishlist-item-brand {
+        font-size: 0.75rem;
+      }
+
+      .wishlist-item-price {
+        font-size: 0.95rem;
+      }
+
+      .add-to-cart-btn,
+      .remove-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+
+      .empty-state {
+        padding: 2rem 0.75rem;
+      }
+
+      .empty-state h2 {
+        font-size: 1.1rem;
+      }
+
+      .empty-state a {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        overflow-x: hidden;
+      }
+
+      .container {
+        padding: 0.75rem;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .products-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .wishlist-item {
+        padding: 0.6rem;
+        gap: 0.6rem;
+        flex-direction: column;
+      }
+
+      .wishlist-item-image {
+        width: 100%;
+        height: 200px;
+      }
+
+      .wishlist-item-title {
+        font-size: 0.85rem;
+      }
+
+      .wishlist-item-brand {
+        font-size: 0.7rem;
+      }
+
+      .wishlist-item-price {
+        font-size: 0.9rem;
+      }
+
+      .add-to-cart-btn,
+      .remove-btn {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.75rem;
+      }
+
+      .empty-state {
+        padding: 1.5rem 0.5rem;
+      }
+
+      .empty-state h2 {
+        font-size: 1rem;
+      }
+
+      .empty-state a {
+        padding: 0.55rem 1rem;
+        font-size: 0.8rem;
+      }
     }
   `;
 

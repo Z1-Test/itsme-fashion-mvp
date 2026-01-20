@@ -21,18 +21,46 @@ export class PageCart extends LitElement {
     }
 
     h1 {
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
     }
 
     .cart-container {
       display: grid;
-      grid-template-columns: 1fr 400px;
+      grid-template-columns: 1fr 380px;
       gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .cart-container {
+        grid-template-columns: 1fr 320px;
+        gap: 1.5rem;
+      }
     }
 
     @media (max-width: 768px) {
       .cart-container {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        overflow-x: hidden;
+      }
+
+      .cart-container {
+        gap: 1rem;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
       }
     }
 
@@ -44,7 +72,7 @@ export class PageCart extends LitElement {
 
     .cart-item {
       display: grid;
-      grid-template-columns: 100px 1fr auto;
+      grid-template-columns: 80px 1fr auto;
       gap: 1rem;
       padding: 1rem;
       border: 1px solid #e5e5e5;
@@ -53,8 +81,8 @@ export class PageCart extends LitElement {
     }
 
     .item-image {
-      width: 100px;
-      height: 100px;
+      width: 80px;
+      height: 80px;
       object-fit: cover;
       border-radius: 0.375rem;
     }
@@ -65,19 +93,21 @@ export class PageCart extends LitElement {
 
     .item-name {
       font-weight: 600;
-      font-size: 1.125rem;
+      font-size: 1rem;
       margin-bottom: 0.25rem;
+      line-height: 1.3;
     }
 
     .item-brand {
       color: #666;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       margin-bottom: 0.5rem;
     }
 
     .item-price {
       font-weight: 600;
       color: #000;
+      font-size: 0.95rem;
     }
 
     .item-shade {
@@ -85,13 +115,13 @@ export class PageCart extends LitElement {
       align-items: center;
       gap: 0.5rem;
       margin-top: 0.5rem;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       color: #555;
     }
 
     .shade-swatch-cart {
-      width: 1rem;
-      height: 1rem;
+      width: 0.9rem;
+      height: 0.9rem;
       border-radius: 50%;
       border: 1px solid rgba(0, 0, 0, 0.1);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
@@ -104,27 +134,27 @@ export class PageCart extends LitElement {
     .item-controls {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.75rem;
       align-items: flex-end;
     }
 
     .quantity-controls {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.25rem;
       border: 1px solid #e5e5e5;
       border-radius: 0.375rem;
-      padding: 0.25rem;
+      padding: 0.2rem;
     }
 
     .quantity-btn {
-      width: 2rem;
-      height: 2rem;
+      width: 1.75rem;
+      height: 1.75rem;
       border: none;
       background: #f5f5f5;
       border-radius: 0.25rem;
       cursor: pointer;
-      font-size: 1.125rem;
+      font-size: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -136,9 +166,10 @@ export class PageCart extends LitElement {
     }
 
     .quantity {
-      min-width: 2rem;
+      min-width: 1.75rem;
       text-align: center;
       font-weight: 600;
+      font-size: 0.9rem;
     }
 
     .remove-btn {
@@ -146,8 +177,9 @@ export class PageCart extends LitElement {
       border: none;
       color: #dc2626;
       cursor: pointer;
-      font-size: 0.875rem;
+      font-size: 0.75rem;
       text-decoration: underline;
+      padding: 0;
     }
 
     .remove-btn:hover {
@@ -157,14 +189,14 @@ export class PageCart extends LitElement {
     .cart-summary {
       border: 1px solid #e5e5e5;
       border-radius: 0.5rem;
-      padding: 1.5rem;
+      padding: 1.25rem;
       height: fit-content;
       position: sticky;
       top: 1rem;
     }
 
     .summary-title {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 600;
       margin-bottom: 1rem;
     }
@@ -172,8 +204,8 @@ export class PageCart extends LitElement {
     .summary-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 0.75rem;
-      font-size: 0.9375rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
     }
 
     .summary-total {
@@ -182,25 +214,25 @@ export class PageCart extends LitElement {
       margin-top: 1rem;
       padding-top: 1rem;
       border-top: 2px solid #e5e5e5;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
     }
 
     .checkout-btn {
       width: 100%;
-      padding: 1rem;
+      padding: 0.75rem;
       background: #000;
       color: white;
       border: none;
       border-radius: 0.375rem;
       cursor: pointer;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 0.95rem;
       margin-top: 1rem;
       transition: background 0.2s;
     }
 
-    .checkout-btn:hover {
+    .checkout-btn:hover:not(:disabled) {
       background: #333;
     }
 
@@ -209,20 +241,137 @@ export class PageCart extends LitElement {
       cursor: not-allowed;
     }
 
+    @media (max-width: 768px) {
+      .cart-item {
+        grid-template-columns: 70px 1fr auto;
+        gap: 0.75rem;
+        padding: 0.75rem;
+      }
+
+      .item-image {
+        width: 70px;
+        height: 70px;
+      }
+
+      .item-name {
+        font-size: 0.95rem;
+      }
+
+      .item-controls {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+
+      .quantity-controls {
+        gap: 0;
+      }
+
+      .quantity-btn {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.8rem;
+      }
+
+      .quantity {
+        min-width: 1.5rem;
+        font-size: 0.85rem;
+      }
+
+      .cart-summary {
+        padding: 1rem;
+        position: static;
+        top: auto;
+      }
+
+      .summary-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .summary-row {
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .summary-total {
+        font-size: 1rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+      }
+
+      .checkout-btn {
+        padding: 0.65rem;
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cart-item {
+        grid-template-columns: 60px 1fr auto;
+        gap: 0.5rem;
+        padding: 0.5rem;
+      }
+
+      .item-image {
+        width: 60px;
+        height: 60px;
+      }
+
+      .item-name {
+        font-size: 0.85rem;
+      }
+
+      .item-brand {
+        font-size: 0.7rem;
+      }
+
+      .item-price {
+        font-size: 0.85rem;
+      }
+
+      .cart-summary {
+        padding: 0.75rem;
+      }
+
+      .summary-title {
+        font-size: 0.95rem;
+      }
+
+      .summary-row {
+        font-size: 0.75rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .summary-total {
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+      }
+
+      .checkout-btn {
+        padding: 0.6rem;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+      }
+    }
+
     .empty-cart {
       text-align: center;
-      padding: 4rem;
+      padding: 3rem 1rem;
     }
 
     .empty-cart-icon {
-      font-size: 4rem;
+      font-size: 3rem;
       margin-bottom: 1rem;
     }
 
     .empty-cart-text {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       color: #666;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
 
     .continue-shopping {
@@ -237,6 +386,25 @@ export class PageCart extends LitElement {
 
     .continue-shopping:hover {
       background: #333;
+    }
+
+    @media (max-width: 480px) {
+      .empty-cart {
+        padding: 2rem 0.75rem;
+      }
+
+      .empty-cart-icon {
+        font-size: 2.5rem;
+      }
+
+      .empty-cart-text {
+        font-size: 1rem;
+      }
+
+      .continue-shopping {
+        font-size: 0.9rem;
+        padding: 0.6rem 1.2rem;
+      }
     }
   `;
 

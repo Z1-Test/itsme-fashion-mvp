@@ -14,19 +14,33 @@ export class PageProductDetail
   static styles = css`
     :host {
       display: block;
-      padding-bottom: 3rem;
+      padding-bottom: 2rem;
     }
 
     .container {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-      margin-top: 2rem;
+      gap: 2.5rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        gap: 2rem;
+      }
     }
 
     @media (max-width: 768px) {
       .container {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-top: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        gap: 1rem;
       }
     }
 
@@ -48,8 +62,8 @@ export class PageProductDetail
     }
 
     .wishlist-btn {
-      width: 3rem;
-      height: 3rem;
+      width: 2.75rem;
+      height: 2.75rem;
       border: none;
       background: white;
       border-radius: 50%;
@@ -68,8 +82,8 @@ export class PageProductDetail
     }
 
     .heart-icon {
-      width: 1.5rem;
-      height: 1.5rem;
+      width: 1.25rem;
+      height: 1.25rem;
     }
 
     .wishlist-btn.wishlisted .heart-icon path {
@@ -86,19 +100,20 @@ export class PageProductDetail
     .details {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
 
     .brand {
       color: #666;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
     h1 {
       margin: 0;
-      font-size: 2.5rem;
+      font-size: 1.75rem;
+      line-height: 1.3;
     }
 
     .price {
@@ -123,6 +138,7 @@ export class PageProductDetail
     .description {
       line-height: 1.6;
       color: #333;
+      font-size: 0.95rem;
     }
 
     .meta {
@@ -135,19 +151,73 @@ export class PageProductDetail
       background: #f5f5f5;
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
 
     .shades {
-      margin-top: 1rem;
+      margin-top: 0.75rem;
     }
     .shade-title {
       font-weight: 600;
       margin-bottom: 0.5rem;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.02em;
     }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .price {
+        font-size: 1.25rem;
+      }
+
+      .details {
+        gap: 1rem;
+      }
+
+      .description {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        overflow-x: hidden;
+      }
+
+      .container {
+        gap: 1rem;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+      }
+
+      .price {
+        font-size: 1.1rem;
+      }
+
+      .details {
+        gap: 0.75rem;
+      }
+
+      .brand {
+        font-size: 0.75rem;
+      }
+
+      .description {
+        font-size: 0.85rem;
+      }
+
+      .tag {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+      }
+    }
+
     .shade-swatches {
       display: flex;
       gap: 0.5rem;

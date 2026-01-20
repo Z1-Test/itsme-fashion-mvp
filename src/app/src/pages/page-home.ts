@@ -6,45 +6,125 @@ export class PageHome extends LitElement {
   static styles = css`
     :host {
       display: block;
+      overflow-x: hidden;
     }
 
     .hero {
       text-align: center;
-      padding: 4rem 2rem;
+      padding: 3rem 1.5rem;
       background: linear-gradient(135deg, #f5f5f5 0%, #fff 100%);
     }
 
     h1 {
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
       color: #000;
     }
 
     .subtitle {
-      font-size: 1.25rem;
+      font-size: 1.125rem;
       color: #666;
       margin-bottom: 2rem;
     }
 
     .features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
-      margin-top: 4rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+      padding: 0 1.5rem;
     }
 
     .feature {
       text-align: center;
-      padding: 2rem;
+      padding: 1.5rem 1rem;
     }
 
     .feature-icon {
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
     }
 
     .feature h3 {
       margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .feature p {
+      font-size: 0.875rem;
+      color: #666;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 2rem 1rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .features {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 0 1rem;
+      }
+
+      .feature {
+        padding: 1rem 0.75rem;
+      }
+
+      .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        overflow-x: hidden;
+      }
+
+      .hero {
+        padding: 1.5rem 0.75rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding: 0 0.75rem;
+      }
+
+      .feature {
+        padding: 1rem 0.5rem;
+      }
+
+      .feature-icon {
+        font-size: 2rem;
+      }
+
+      .feature h3 {
+        font-size: 0.95rem;
+      }
+
+      .feature p {
+        font-size: 0.8rem;
+      }
     }
   `;
 

@@ -48,45 +48,48 @@ export class PageProfile extends LitElement {
     }
 
     .container {
-      padding: 2rem;
+      padding: 1.5rem;
     }
 
     h1 {
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       color: #000;
+      font-size: 1.75rem;
     }
 
     .profile-header {
       display: flex;
       align-items: center;
-      gap: 2rem;
+      gap: 1.5rem;
       margin-bottom: 2rem;
-      padding: 2rem;
+      padding: 1.5rem;
       background: white;
       border: 1px solid #e5e5e5;
       border-radius: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .profile-avatar {
-      width: 150px;
-      height: 150px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 4rem;
+      font-size: 3rem;
       flex-shrink: 0;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .profile-header-info {
       flex: 1;
+      min-width: 200px;
     }
 
     .profile-header-info h2 {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       margin-bottom: 0.5rem;
       color: #000;
     }
@@ -94,6 +97,7 @@ export class PageProfile extends LitElement {
     .profile-header-info p {
       color: #666;
       margin: 0.25rem 0;
+      font-size: 0.95rem;
     }
 
     .profile-grid {
@@ -137,8 +141,9 @@ export class PageProfile extends LitElement {
       border-radius: 0.375rem;
       cursor: pointer;
       font-weight: 500;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       transition: all 0.2s;
+      padding: 0.6rem 1.2rem;
     }
 
     .edit-address-btn:hover {
@@ -148,7 +153,7 @@ export class PageProfile extends LitElement {
 
     .address-content {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1rem;
     }
 
@@ -164,23 +169,23 @@ export class PageProfile extends LitElement {
       color: #000;
       margin-bottom: 0.5rem;
       display: inline-block;
-      padding: 0.25rem 0.75rem;
+      padding: 0.2rem 0.6rem;
       background: #e5e7eb;
       border-radius: 0.25rem;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
     }
 
     .address-text {
       color: #666;
-      font-size: 0.9375rem;
+      font-size: 0.9rem;
       line-height: 1.6;
       margin-top: 0.5rem;
     }
 
     .address-form {
       display: grid;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .form-row {
@@ -192,20 +197,20 @@ export class PageProfile extends LitElement {
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
 
     .form-group label {
       font-weight: 500;
       color: #333;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
     }
 
     .form-group input {
-      padding: 0.75rem;
+      padding: 0.65rem;
       border: 1px solid #e5e5e5;
       border-radius: 0.375rem;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     .form-group input:focus {
@@ -215,18 +220,20 @@ export class PageProfile extends LitElement {
 
     .form-buttons {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       margin-top: 1rem;
+      flex-wrap: wrap;
     }
 
     .btn-save {
-      padding: 0.75rem 1.5rem;
+      padding: 0.6rem 1.2rem;
       background: #000;
       color: white;
       border: none;
       border-radius: 0.375rem;
       cursor: pointer;
       font-weight: 600;
+      font-size: 0.9rem;
       transition: background 0.2s;
     }
 
@@ -235,13 +242,14 @@ export class PageProfile extends LitElement {
     }
 
     .btn-cancel {
-      padding: 0.75rem 1.5rem;
+      padding: 0.6rem 1.2rem;
       background: #e5e7eb;
       color: #000;
       border: 1px solid #d1d5db;
       border-radius: 0.375rem;
       cursor: pointer;
       font-weight: 600;
+      font-size: 0.9rem;
       transition: all 0.2s;
     }
 
@@ -258,14 +266,34 @@ export class PageProfile extends LitElement {
 
     .profile-info {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
     }
 
     @media (max-width: 768px) {
       .profile-info {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .address-content {
         grid-template-columns: 1fr;
-        gap: 1.5rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :host {
+        overflow-x: hidden;
+      }
+
+      .profile-info {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
       }
     }
 
@@ -277,19 +305,19 @@ export class PageProfile extends LitElement {
     }
 
     .info-label {
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       color: #666;
       font-weight: 500;
     }
 
     .info-value {
-      font-size: 1.125rem;
+      font-size: 1rem;
       color: #000;
       font-weight: 500;
     }
 
     .edit-btn {
-      padding: 0.75rem 1.5rem;
+      padding: 0.6rem 1.2rem;
       background: #000;
       color: white;
       border: none;
@@ -389,20 +417,20 @@ export class PageProfile extends LitElement {
 
     .order-items {
       margin-bottom: 1rem;
-      padding-bottom: 1rem;
+      padding-bottom: 0.75rem;
       border-bottom: 1px solid #e5e5e5;
     }
 
     .order-item {
       display: grid;
-      grid-template-columns: 80px 1fr 100px 120px;
-      gap: 1rem;
+      grid-template-columns: 70px 1fr 80px 100px;
+      gap: 0.75rem;
       align-items: center;
-      padding: 1rem;
+      padding: 0.75rem;
       background: #f9fafb;
       border-radius: 0.375rem;
-      margin-bottom: 0.75rem;
-      font-size: 0.9375rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
     }
 
     .order-item:last-child {
@@ -410,8 +438,8 @@ export class PageProfile extends LitElement {
     }
 
     .item-image {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       background-color: #e5e5e5;
       border-radius: 0.375rem;
       object-fit: cover;
@@ -421,9 +449,73 @@ export class PageProfile extends LitElement {
     .item-details {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 0.2rem;
     }
 
+    @media (max-width: 768px) {
+      .order-item {
+        grid-template-columns: 60px 1fr 70px;
+        gap: 0.5rem;
+        padding: 0.6rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .item-image {
+        width: 60px;
+        height: 60px;
+      }
+
+      .order-item-price,
+      .order-item-qty {
+        text-align: right;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .order-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .order-header {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .order-id-date {
+        width: 100%;
+      }
+
+      .order-id {
+        font-size: 0.9rem;
+        word-break: break-word;
+      }
+
+      .order-status {
+        align-self: flex-start;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+      }
+
+      .order-item {
+        grid-template-columns: 50px 1fr;
+        gap: 0.4rem;
+        padding: 0.5rem;
+        margin-bottom: 0.3rem;
+        font-size: 0.8rem;
+      }
+
+      .item-image {
+        width: 50px;
+        height: 50px;
+      }
+
+      .order-item-price,
+      .order-item-qty {
+        display: none;
+      }
+    }
     .item-name {
       font-weight: 600;
       color: #000;
@@ -436,15 +528,18 @@ export class PageProfile extends LitElement {
     }
 
     .item-qty {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: #e5e7eb;
-      padding: 0.5rem;
-      border-radius: 0.375rem;
+      background: linear-gradient(135deg, #f0f0f0 0%, #e5e5e5 100%);
+      padding: 0.35rem 0.65rem;
+      border-radius: 0.25rem;
       font-weight: 600;
-      color: #000;
-      font-size: 0.875rem;
+      color: #333;
+      font-size: 0.8rem;
+      border: 1px solid #d5d5d5;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .item-price {
@@ -542,6 +637,202 @@ export class PageProfile extends LitElement {
 
     .empty-state a:hover {
       background: #333;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .profile-header {
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      .profile-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+      }
+
+      .profile-header-info h2 {
+        font-size: 1.25rem;
+      }
+
+      .profile-section-title {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+      }
+
+      .address-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .address-content {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .address-card {
+        padding: 0.75rem;
+      }
+
+      .edit-address-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.6rem;
+      }
+
+      .form-group input {
+        padding: 0.55rem;
+        font-size: 0.9rem;
+      }
+
+      .form-buttons {
+        gap: 0.6rem;
+      }
+
+      .btn-save,
+      .btn-cancel {
+        padding: 0.55rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .empty-state {
+        padding: 2rem 1rem;
+      }
+
+      .empty-state-icon {
+        font-size: 2.5rem;
+      }
+
+      .empty-state h2 {
+        font-size: 1.1rem;
+      }
+
+      .empty-state a {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0.75rem;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .profile-header {
+        padding: 0.75rem;
+        gap: 0.75rem;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .profile-avatar {
+        width: 90px;
+        height: 90px;
+        font-size: 2rem;
+      }
+
+      .profile-header-info {
+        min-width: 100%;
+      }
+
+      .profile-header-info h2 {
+        font-size: 1.1rem;
+      }
+
+      .profile-header-info p {
+        font-size: 0.85rem;
+      }
+
+      .profile-section-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .profile-info {
+        gap: 0.5rem;
+      }
+
+      .info-label {
+        font-size: 0.75rem;
+      }
+
+      .info-value {
+        font-size: 0.95rem;
+      }
+
+      .edit-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+
+      .address-content {
+        gap: 0.5rem;
+      }
+
+      .address-card {
+        padding: 0.6rem;
+      }
+
+      .address-text {
+        font-size: 0.85rem;
+      }
+
+      .form-group label {
+        font-size: 0.8rem;
+      }
+
+      .form-group input {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+      }
+
+      .btn-save,
+      .btn-cancel {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.8rem;
+        flex: 1;
+      }
+
+      .form-buttons {
+        gap: 0.5rem;
+      }
+
+      .empty-state {
+        padding: 1.5rem 0.75rem;
+      }
+
+      .empty-state-icon {
+        font-size: 2rem;
+      }
+
+      .empty-state h2 {
+        font-size: 1rem;
+      }
+
+      .empty-state a {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
     }
   `;
 
