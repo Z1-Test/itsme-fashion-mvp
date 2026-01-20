@@ -2,6 +2,7 @@
   "name": "itsme-fashion-mvp",
   "version": "1.0.0",
   "description": "It's Me Fashion - Monorepo with Lit + Vite + Firebase",
+  "type": "module",
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
@@ -20,7 +21,6 @@
     "firebase-functions": "^7.0.0",
     "firebase-admin": "^12.0.0",
     "vitest": "^1.0.0",
-    "csv-parser": "^3.0.0",
     "csv-parse": "^5.5.0"
   },
   "dependencies": {

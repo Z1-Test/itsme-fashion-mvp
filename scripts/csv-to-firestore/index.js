@@ -1,7 +1,12 @@
-const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
-const { parse } = require('csv-parse/sync');
+import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { parse } from 'csv-parse/sync';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const BATCH_SIZE = 500;
 
 // Initialize Firebase Admin SDK for emulator
 admin.initializeApp({
@@ -40,7 +45,14 @@ async function importCSV() {
 
     // Clean up the data, convert types
     const cleanedProduct = {
-      no: parseInt(product['No']) || 0,
+      no: (() => {
+        const val = parseInt(product['No']);
+        if (isNaN(val)) {
+          console.warn(`Invalid 'No' for SKU ${product['SKU']}: ${product['No']}`);
+          return 0;
+        }
+        return val;
+      })(),
       url: product['URL'] || '',
       productId: product['Product ID'],
       category: product['Category'] || '',
@@ -50,8 +62,22 @@ async function importCSV() {
       shadeName: product['Shade name'] || '',
       shadeCode: product['Shade code'] || '',
       hexCode: product['Hex code'] || '',
-      price: parseFloat(product['Price (₹)']) || 0,
-      stock: parseInt(product['Stock']) || 0,
+      price: (() => {
+        const val = parseFloat(product['Price (₹)']);
+        if (isNaN(val)) {
+          console.warn(`Invalid price for SKU ${product['SKU']}: ${product['Price (₹)']}`);
+          return 0;
+        }
+        return val;
+      })(),
+      stock: (() => {
+        const val = parseInt(product['Stock']);
+        if (isNaN(val)) {
+          console.warn(`Invalid stock for SKU ${product['SKU']}: ${product['Stock']}`);
+          return 0;
+        }
+        return val;
+      })(),
       quantity: product['Quantity'] || '',
       tagline: product['Tagline'] || '',
       shortDescription: product['Short description'] || '',
@@ -69,7 +95,7 @@ async function importCSV() {
     count++;
 
     // Firestore batch limit is 500
-    if (count % 500 === 0) {
+    if (count % BATCH_SIZE === 0) {
       await batch.commit();
       console.log(`Committed batch of ${count} products.`);
       batch = db.batch();
@@ -77,9 +103,9 @@ async function importCSV() {
   }
 
   // Commit remaining
-  if (count % 500 !== 0) {
+  if (count % BATCH_SIZE !== 0) {
     await batch.commit();
-    console.log(`Committed final batch of ${count % 500} products.`);
+    console.log(`Committed final batch of ${count % BATCH_SIZE} products.`);
   }
 
   console.log(`Successfully imported ${count} products to Firestore.`);
