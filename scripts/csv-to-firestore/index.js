@@ -45,14 +45,6 @@ async function importCSV() {
 
     // Clean up the data, convert types
     const cleanedProduct = {
-      no: (() => {
-        const val = parseInt(product['No']);
-        if (isNaN(val)) {
-          console.warn(`Invalid 'No' for SKU ${product['SKU']}: ${product['No']}`);
-          return 0;
-        }
-        return val;
-      })(),
       url: product['URL'] || '',
       productId: product['Product ID'],
       category: product['Category'] || '',
