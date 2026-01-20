@@ -481,14 +481,24 @@ export class PageCart extends LitElement {
                   <div class="quantity-controls">
                     <button
                       class="quantity-btn"
-                      @click=${() => this._updateQuantity(item.productId, -1)}
+                      @click=${() =>
+                        this._updateQuantity(
+                          item.productId,
+                          -1,
+                          item.selectedShade,
+                        )}
                     >
                       −
                     </button>
                     <span class="quantity">${item.quantity}</span>
                     <button
                       class="quantity-btn"
-                      @click=${() => this._updateQuantity(item.productId, 1)}
+                      @click=${() =>
+                        this._updateQuantity(
+                          item.productId,
+                          1,
+                          item.selectedShade,
+                        )}
                     >
                       +
                     </button>

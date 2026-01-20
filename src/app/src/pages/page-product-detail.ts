@@ -391,9 +391,19 @@ export class PageProductDetail
     try {
       const cartData = localStorage.getItem("cart");
       const cart = cartData ? JSON.parse(cartData) : { items: [] };
-      const existingItem = cart.items.find(
-        (item: any) => item.productId === this.product?.id,
-      );
+
+      const shades = this.product?.shades || [];
+      const selectedShade =
+        shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+
+      const existingItem = cart.items.find((item: any) => {
+        const isSameProduct = item.productId === this.product?.id;
+        const isSameShade = selectedShade
+          ? item.selectedShade?.hexCode === selectedShade.hexCode
+          : !item.selectedShade;
+        return isSameProduct && isSameShade;
+      });
+
       if (existingItem) {
         this.cartQuantity = existingItem.quantity;
       } else {
@@ -516,6 +526,7 @@ export class PageProductDetail
     if (!this.product?.shades) return;
     if (index < 0 || index >= this.product.shades.length) return;
     this.selectedShadeIndex = index;
+    this._checkCartStatus();
   }
 
   render() {
