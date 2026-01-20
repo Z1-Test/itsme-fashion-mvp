@@ -18,6 +18,7 @@ export class ItsmeProductCard extends LitElement {
       transition: box-shadow 0.2s ease;
       cursor: pointer;
       height: 100%;
+      min-height: 420px;
       display: flex;
       flex-direction: column;
     }
@@ -32,6 +33,7 @@ export class ItsmeProductCard extends LitElement {
       padding-top: 100%;
       background-color: #f5f5f5;
       overflow: hidden;
+      flex-shrink: 0;
     }
 
     .image {
@@ -123,6 +125,11 @@ export class ItsmeProductCard extends LitElement {
       font-weight: 600;
       margin-bottom: 0.5rem;
       line-height: 1.4;
+      min-height: 2.8rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .price {
@@ -140,7 +147,7 @@ export class ItsmeProductCard extends LitElement {
     .cart-controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
+      gap: 0.4rem;
       margin-top: 1rem;
     }
 
@@ -185,30 +192,36 @@ export class ItsmeProductCard extends LitElement {
 
     .add-to-cart-btn {
       height: 2.225rem;
-      padding: 0 1rem;
+      padding: 0 0.5rem;
       background: #000;
       color: white;
       border: none;
       border-radius: 0.375rem;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transition: background 0.2s;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
 
     .buy-now-btn {
       height: 2.225rem;
-      padding: 0 1rem;
+      padding: 0 0.5rem;
       background: #e5e5e5;
       color: #000;
       border: none;
       border-radius: 0.375rem;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transition: background 0.2s;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
 
     .buy-now-btn:hover {
@@ -229,7 +242,13 @@ export class ItsmeProductCard extends LitElement {
       align-items: center;
       gap: 0.5rem;
       margin: 0.5rem 0 0.75rem;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      min-height: 1.75rem;
+    }
+
+    .shade-placeholder {
+      min-height: 1.75rem;
+      margin: 0.5rem 0 0.75rem;
     }
 
     .shade-swatch {
@@ -486,7 +505,7 @@ export class ItsmeProductCard extends LitElement {
                     : ""}
                 </div>
               `
-            : ""}
+            : html`<div class="shade-placeholder"></div>`}
           <div class="price">${formatCurrency(price)}</div>
           ${isOutOfStock
             ? html`<div class="stock-indicator">Out of Stock</div>`

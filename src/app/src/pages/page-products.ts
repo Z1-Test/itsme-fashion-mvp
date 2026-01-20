@@ -25,7 +25,7 @@ export class PageProducts extends LitElement {
 
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap: 1.5rem;
     }
 
@@ -46,7 +46,7 @@ export class PageProducts extends LitElement {
 
     @media (max-width: 1024px) {
       .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 1.25rem;
       }
     }
@@ -63,7 +63,7 @@ export class PageProducts extends LitElement {
       }
 
       .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
       }
 
