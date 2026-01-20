@@ -1,5 +1,5 @@
 {
-  "name": "@itsme/service-catalog",
+  "name": "@itsme/service-payments",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",

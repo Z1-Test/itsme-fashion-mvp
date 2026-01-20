@@ -1,0 +1,24 @@
+{
+  "name": "@itsme/design-system",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "lit": "^3.1.0",
+    "@itsme/shared-utils": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
