@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import type { Product } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
+import { MOCK_PRODUCTS } from "../mock-products";
 
 @customElement("page-wishlist")
 export class PageWishlist extends LitElement {
@@ -198,22 +199,33 @@ export class PageWishlist extends LitElement {
     const wishlistData = localStorage.getItem("wishlist");
     const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
 
-    // Load all products
-    const cartData = localStorage.getItem("cart");
-    const cart = cartData ? JSON.parse(cartData) : { items: [] };
-
-    // Get all unique products from cart (as a proxy for all available products)
-    const allProducts = new Map();
-    cart.items.forEach((item: any) => {
-      if (item.product) {
-        allProducts.set(item.product.id, item.product);
-      }
+    // Create a map of all available products for efficient lookup
+    const allProducts = new Map<string, Product>();
+    MOCK_PRODUCTS.forEach((product) => {
+      allProducts.set(product.id, product);
     });
+
+    // Also check cart for any products that might have been dynamically added (edge case)
+    try {
+      const cartData = localStorage.getItem("cart");
+      if (cartData) {
+        const cart = JSON.parse(cartData);
+        if (cart.items && Array.isArray(cart.items)) {
+          cart.items.forEach((item: any) => {
+            if (item.product && !allProducts.has(item.product.id)) {
+              allProducts.set(item.product.id, item.product);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Error reading cart for extra products", e);
+    }
 
     // Filter wishlist items
     this.wishlistItems = wishlistIds
       .map((id: string) => allProducts.get(id))
-      .filter((p: Product | undefined) => p !== undefined);
+      .filter((p: Product | undefined) => p !== undefined) as Product[];
 
     this.loading = false;
   }

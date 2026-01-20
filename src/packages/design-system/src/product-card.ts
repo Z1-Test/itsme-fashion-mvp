@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Product } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
+import { NotificationService } from "./notification-service";
 
 @customElement("itsme-product-card")
 export class ItsmeProductCard extends LitElement {
@@ -68,17 +69,22 @@ export class ItsmeProductCard extends LitElement {
     .heart-icon {
       width: 1.25rem;
       height: 1.25rem;
-      fill: currentColor;
       transition: all 0.2s ease;
     }
 
+    .wishlist-btn.wishlisted .heart-icon path {
+      fill: #dc2626;
+      stroke: none;
+    }
+
     .wishlist-btn.wishlisted .heart-icon {
-      color: #dc2626;
       filter: drop-shadow(0 2px 4px rgba(220, 38, 38, 0.3));
     }
 
-    .wishlist-btn:not(.wishlisted) .heart-icon {
-      color: #000;
+    .wishlist-btn:not(.wishlisted) .heart-icon path {
+      fill: none;
+      stroke: #000;
+      stroke-width: 2;
     }
 
     .ethical-badges {
@@ -203,20 +209,37 @@ export class ItsmeProductCard extends LitElement {
   @state() private isInWishlist = false;
   @state() private isLoggedIn = false;
 
+  private _boundHandleGlobalWishlist =
+    this._handleGlobalWishlistToggle.bind(this);
+
   connectedCallback() {
     super.connectedCallback();
     // Check user login status and wishlist status when component connects
     this._checkLoginStatus();
     this._checkWishlistStatus();
+
+    // Listen for global wishlist updates
+    window.addEventListener(
+      "itsme-wishlist-toggle",
+      this._boundHandleGlobalWishlist as EventListener,
+    );
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener(
+      "itsme-wishlist-toggle",
+      this._boundHandleGlobalWishlist as EventListener,
+    );
   }
 
   updated(changedProperties: Map<string, any>) {
-    // Check wishlist status when product changes
-    if (changedProperties.has("product")) {
+    // Check wishlist status when product or isWishlisted prop changes
+    if (
+      changedProperties.has("product") ||
+      changedProperties.has("isWishlisted")
+    ) {
       this._checkWishlistStatus();
-    }
-    if (changedProperties.has("isWishlisted")) {
-      this.isInWishlist = this.isWishlisted;
     }
   }
 
@@ -226,11 +249,30 @@ export class ItsmeProductCard extends LitElement {
   }
 
   private _checkWishlistStatus() {
+    if (this.isWishlisted) {
+      this.isInWishlist = true;
+      return;
+    }
+
     if (!this.product) return;
 
-    const wishlistData = localStorage.getItem("wishlist");
-    const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
-    this.isInWishlist = wishlistIds.includes(this.product.id);
+    try {
+      const wishlistData = localStorage.getItem("wishlist");
+      const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
+      if (Array.isArray(wishlistIds)) {
+        this.isInWishlist = wishlistIds.includes(this.product.id);
+      }
+    } catch (e) {
+      console.warn("Error reading wishlist:", e);
+    }
+  }
+
+  private _handleGlobalWishlistToggle(e: CustomEvent) {
+    const { product } = e.detail;
+    // If this card represents the same product that was toggled elsewhere
+    if (this.product && product && this.product.id === product.id) {
+      this._checkWishlistStatus();
+    }
   }
 
   render() {
@@ -259,15 +301,9 @@ export class ItsmeProductCard extends LitElement {
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  ${this.isInWishlist
-                    ? html`<path
-                        fill="currentColor"
-                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                      />`
-                    : html`<path
-                        fill="currentColor"
-                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zm0-2.23c4.57-4.08 7-6.79 7-8.62 0-2.05-1.48-3.7-3.5-3.7-1.54 0-3.01.86-3.57 2.36h-1.86C6.48 5.84 5.01 4.98 3.5 4.98 1.48 4.98 0 6.63 0 8.68c0 1.83 2.43 4.54 7 8.62l5 4.42z"
-                      />`}
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  />
                 </svg>
               </button>`
             : ""}
@@ -363,10 +399,12 @@ export class ItsmeProductCard extends LitElement {
       // Remove from wishlist
       wishlistIds.splice(index, 1);
       this.isInWishlist = false;
+      NotificationService.info(`Removed ${this.product.name} from wishlist`);
     } else {
       // Add to wishlist
       wishlistIds.push(this.product.id);
       this.isInWishlist = true;
+      NotificationService.success(`Added ${this.product.name} to wishlist`);
     }
 
     // Save wishlist
