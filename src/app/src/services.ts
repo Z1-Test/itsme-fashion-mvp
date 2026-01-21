@@ -7,6 +7,7 @@
 import { auth, functions } from "./firebase";
 import { AuthService } from "./services/auth";
 import { AddressService } from "./services/address";
+import { OrderService } from "./services/order";
 import { NotificationService } from "@itsme/design-system";
 
 // Initialize Auth Service
@@ -14,6 +15,9 @@ export const authService = new AuthService(auth, functions);
 
 // Initialize Address Service
 export const addressService = new AddressService(functions);
+
+// Initialize Order Service
+export const orderService = new OrderService(functions);
 
 // Export Notification Service
 export { NotificationService };
