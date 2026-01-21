@@ -623,17 +623,10 @@ export class PageProductDetail
         </div>
         <div class="details">
           <div>
-<<<<<<< HEAD
-            <div class="brand">${brand}</div>
-            <h1>${name}</h1>
-            ${tagline
-        ? html`<p
-=======
             <div class="brand">It's Me</div>
             <h1>${productName}</h1>
             ${this.product.tagline
               ? html`<p
->>>>>>> origin/main
                   style="font-style: italic; color: #666; margin-top: 0.5rem;"
                 >
                   ${this.product.tagline}
@@ -675,17 +668,10 @@ export class PageProductDetail
                   ${selectedShade
             ? html`
                         <div class="shade-meta">
-<<<<<<< HEAD
-                          <span class="shade-name">${selectedShade.name}</span>
-                          ${selectedShade.code
-                ? html`<span class="shade-code"
-                                >Shade ${selectedShade.code}</span
-=======
                           <span class="shade-name">${selectedShade.shadeName}</span>
                           ${selectedShade.shadeCode
                             ? html`<span class="shade-code"
                                 >Shade ${selectedShade.shadeCode}</span
->>>>>>> origin/main
                               >`
                 : ""}
                         </div>
@@ -736,50 +722,24 @@ export class PageProductDetail
 
           <div class="description">${this.product.description}</div>
 
-<<<<<<< HEAD
-          ${ethicalMarkers && ethicalMarkers.length > 0
-        ? html`
-                <div class="meta">
-                  ${ethicalMarkers.map(
-          (m) => html`<span class="tag">${m}</span>`,
-        )}
-                </div>
-              `
-        : ""}
-          ${benefits
-        ? html`
-=======
           ${this.product.keyBenefits
             ? html`
->>>>>>> origin/main
                 <div>
                   <div class="section-title">Benefits</div>
                   <p>${this.product.keyBenefits}</p>
                 </div>
               `
-<<<<<<< HEAD
-        : ""}
-          ${usage
-        ? html`
-=======
             : ""}
           ${this.product.howToUse
             ? html`
->>>>>>> origin/main
                 <div>
                   <div class="section-title">How to Use</div>
                   <p>${this.product.howToUse}</p>
                 </div>
               `
-<<<<<<< HEAD
-        : ""}
-          ${ingredients
-        ? html`
-=======
             : ""}
           ${this.product.ingredients
             ? html`
->>>>>>> origin/main
                 <div>
                   <div class="section-title">Ingredients</div>
                   <p style="font-size: 0.85rem; color: #555;">${this.product.ingredients}</p>
