@@ -1,6 +1,8 @@
 {
   "name": "@itsme/service-identity",
   "version": "1.0.0",
+  "main": "../../../lib/services/identity/index.js",
+  "types": "../../../lib/services/identity/index.d.ts",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",
@@ -14,7 +16,6 @@
   "engines": {
     "node": "24"
   },
-  "main": "lib/index.js",
   "dependencies": {
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.0"

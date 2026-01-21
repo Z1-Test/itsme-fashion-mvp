@@ -1,6 +1,6 @@
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 
 // Initialize Firebase Admin SDK
 admin.initializeApp();
@@ -11,7 +11,7 @@ const auth = admin.auth();
 request body:
 {
   "data": {
-    "name": "Jane Smith",
+    "displayName": "Jane Smith",
     "email": "jane@example.com",
     "password": "securePassword123"
   }
@@ -19,14 +19,14 @@ request body:
 */
 export const registerUser = onCall(async (request) => {
   try {
-    const { name, email, password } = request.data;
+    const { displayName, email, password } = request.data;
 
     // Validate input
-   if (!name || !email || !password) {  
-      throw new HttpsError("invalid-argument", "Missing required fields: name, email, password.");  
+   if (!displayName || !email || !password) {  
+      throw new HttpsError("invalid-argument", "Missing required fields: displayName, email, password.");  
     }  
 
-    if (typeof name !== "string" || name.trim().length === 0) {  
+    if (typeof displayName !== "string" || displayName.trim().length === 0) {  
       throw new HttpsError("invalid-argument", "Name must be a non-empty string.");  
     }  
 
@@ -45,7 +45,7 @@ export const registerUser = onCall(async (request) => {
     const userRecord = await auth.createUser({
       email: email.toLowerCase(),
       password: password,
-      displayName: name.trim(),
+      displayName: displayName.trim(),
     });
 
     logger.info(`User created in Auth: ${userRecord.uid}`, {
@@ -56,7 +56,7 @@ export const registerUser = onCall(async (request) => {
     // Create user document in Firestore with default role
     const userData = {
       uid: userRecord.uid,
-      name: name.trim(),
+      displayName: displayName.trim(),
       email: email.toLowerCase(),
       role: "user",
       createdAt: new Date(),
@@ -76,7 +76,7 @@ export const registerUser = onCall(async (request) => {
       message: "User registered successfully",
       user: {
         uid: userRecord.uid,
-        name: userData.name,
+        displayName: userData.displayName,
         email: userData.email,
         role: userData.role,
       },
@@ -112,5 +112,4 @@ export const registerUser = onCall(async (request) => {
 
     // Fallback for other types of errors  
     throw new HttpsError("internal", "Registration failed due to an unknown error.");  
-}}
-);
+}});
