@@ -6,9 +6,17 @@
 // import { DeliveryService } from "@itsme/service-delivery";
 import { auth, functions } from "./firebase";
 import { AuthService } from "./services/auth";
+import { AddressService } from "./services/address";
+import { NotificationService } from "@itsme/design-system";
 
 // Initialize Auth Service
 export const authService = new AuthService(auth, functions);
+
+// Initialize Address Service
+export const addressService = new AddressService(functions);
+
+// Export Notification Service
+export { NotificationService };
 
 // TODO: Initialize all services when they are fully implemented
 // export const catalogService = new CatalogService(db);

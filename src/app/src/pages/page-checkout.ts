@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
+import { NotificationService } from "../services";
 
 interface CartItem {
   productId: string;
@@ -905,7 +906,7 @@ export class PageCheckout extends LitElement {
 
     // Check if address is saved
     if (!this.savedAddress) {
-      alert("Please add and save your shipping address first.");
+      NotificationService.error("Please add and save your shipping address first.");
       this.processing = false;
       return;
     }
