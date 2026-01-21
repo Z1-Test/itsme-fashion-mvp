@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
 import { addressService } from "../services";
 import { authService } from "../services";
+import { NotificationService } from "../services";
 import type { Address } from "../services/address";
 
 interface MockUser {
@@ -925,7 +926,7 @@ export class PageProfile extends LitElement {
     try {
       const user = authService.getCurrentUser();
       if (!user || !user.uid) {
-        alert("User not authenticated");
+        NotificationService.error("User not authenticated");
         return;
       }
 
@@ -942,14 +943,14 @@ export class PageProfile extends LitElement {
       // Save address
       await addressService.saveAddress(addressData);
 
-      alert("Address saved successfully");
+      NotificationService.success("Address saved successfully");
 
       this.editingAddress = false;
       this.savedAddress = { ...this.editFormData };
       localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
     } catch (error) {
       console.error("Error saving address:", error);
-      alert(`Error saving address: ${error instanceof Error ? error.message : "Unknown error"}`);
+      NotificationService.error(`Error saving address: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
