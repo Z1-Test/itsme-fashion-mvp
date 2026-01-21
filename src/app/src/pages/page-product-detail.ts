@@ -1,8 +1,8 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { BeforeEnterObserver, RouterLocation } from "@vaadin/router";
-import { MOCK_PRODUCTS } from "../mock-products";
-import type { Product, ProductShade } from "@itsme/shared-utils";
+import { getProductById, type Product } from "../services/catalog";
+import type { ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
 import { cart } from "../services";
@@ -362,15 +362,19 @@ export class PageProductDetail
     this._loadProduct(id);
   }
 
-  private _loadProduct(id: string) {
+  private async _loadProduct(id: string) {
     this.loading = true;
-    // Simulate API call
-    const found = MOCK_PRODUCTS.find((p) => p.id === id);
-    this.product = found || null;
-    this.selectedShadeIndex = 0;
-    this._checkWishlistStatus();
-    this._checkCartStatus();
-    this.loading = false;
+    try {
+      this.product = await getProductById(id);
+      this.selectedShadeIndex = 0;
+      this._checkWishlistStatus();
+      this._checkCartStatus();
+    } catch (error) {
+      console.error("Error loading product:", error);
+      this.product = null;
+    } finally {
+      this.loading = false;
+    }
   }
 
   private _checkWishlistStatus() {
@@ -447,7 +451,9 @@ export class PageProductDetail
   private _updateCart(quantity: number, showNotification = false) {
     if (!this.product) return;
 
-    if (this.product.stock < quantity) {
+    const productStock = this.product.shades?.[0]?.stock || 0;
+    
+    if (productStock < quantity) {
       NotificationService.error("Not enough stock available");
       return;
     }
@@ -475,18 +481,18 @@ export class PageProductDetail
           productId: this.product.id,
           product: this.product,
           quantity: quantity,
-          price: this.product.price,
+          price: this.product.shades?.[0]?.price || 0,
           selectedShade: selectedShade,
         });
       }
       if (showNotification) {
-        NotificationService.success(`Added ${this.product.name} to cart`);
+        NotificationService.success(`Added ${this.product.productName} to cart`);
       }
     } else {
       if (existingItemIndex > -1) {
         cart.items.splice(existingItemIndex, 1);
         if (showNotification) {
-          NotificationService.info(`Removed ${this.product.name} from cart`);
+          NotificationService.info(`Removed ${this.product.productName} from cart`);
         }
       }
     }
@@ -518,7 +524,8 @@ export class PageProductDetail
 
   private _incrementQuantity() {
     if (!this.product) return;
-    if (this.cartQuantity < this.product.stock) {
+    const productStock = this.product.shades?.[0]?.stock || 0;
+    if (this.cartQuantity < productStock) {
       this._updateCart(this.cartQuantity + 1);
     } else {
       NotificationService.error("Max stock reached");
@@ -559,21 +566,13 @@ export class PageProductDetail
       `;
     }
 
-    const {
-      name,
-      brand,
-      price,
-      description,
-      ethicalMarkers,
-      stock,
-      shades,
-      tagline,
-      ingredients,
-      usage,
-      benefits,
-    } = this.product;
-
-    const shadesList = shades || [];
+    // Map Firestore product to expected format
+    console.log("Product data:", this.product);
+    const productName = this.product.productName || "Unknown Product";
+    const productPrice = this.product.shades?.[0]?.price || 0;
+    const productStock = this.product.shades?.[0]?.stock || 0;
+    console.log("Mapped values:", { productName, productPrice, productStock });
+    const shadesList = this.product.shades || [];
     const normalizedSelectedIndex =
       shadesList.length && this.selectedShadeIndex < shadesList.length
         ? this.selectedShadeIndex
@@ -587,13 +586,13 @@ export class PageProductDetail
       shadesList.length > 0 ? shadesList[normalizedSelectedIndex] : null;
 
     let stockStatus = html`<span class="stock-status in-stock">In Stock</span>`;
-    if (stock === 0) {
+    if (productStock === 0) {
       stockStatus = html`<span class="stock-status out-of-stock"
         >Out of Stock</span
       >`;
-    } else if (stock < 10) {
+    } else if (productStock < 10) {
       stockStatus = html`<span class="stock-status low-stock"
-        >Low Stock: Only ${stock} left!</span
+        >Low Stock: Only ${productStock} left!</span
       >`;
     }
 
@@ -601,7 +600,7 @@ export class PageProductDetail
       <a href="/products" class="back-link">← Back to Products</a>
       <div class="container">
         <div class="image-container">
-          <img src="${this.product.imageUrl}" alt="${name}" />
+          <img src="${this.product?.imageUrl || this.product?.url || `https://placehold.co/600x600?text=${encodeURIComponent(productName)}`}" alt="${productName}" />
           <div class="wishlist-btn-container">
             <button
               class="wishlist-btn ${this.isInWishlist ? "wishlisted" : ""}"
@@ -624,18 +623,25 @@ export class PageProductDetail
         </div>
         <div class="details">
           <div>
+<<<<<<< HEAD
             <div class="brand">${brand}</div>
             <h1>${name}</h1>
             ${tagline
         ? html`<p
+=======
+            <div class="brand">It's Me</div>
+            <h1>${productName}</h1>
+            ${this.product.tagline
+              ? html`<p
+>>>>>>> origin/main
                   style="font-style: italic; color: #666; margin-top: 0.5rem;"
                 >
-                  ${tagline}
+                  ${this.product.tagline}
                 </p>`
         : ""}
           </div>
 
-          <div class="price">${formatCurrency(price)}</div>
+          <div class="price">₹${productPrice}</div>
 
           <div>${stockStatus}</div>
 
@@ -651,7 +657,7 @@ export class PageProductDetail
               ? "selected"
               : ""}"
                           style="background-color: ${s.hexCode}"
-                          title=${s.name}
+                          title=${s.shadeName}
                           @click=${() => this._selectShade(idx)}
                         >
                           ${normalizedSelectedIndex === idx
@@ -669,10 +675,17 @@ export class PageProductDetail
                   ${selectedShade
             ? html`
                         <div class="shade-meta">
+<<<<<<< HEAD
                           <span class="shade-name">${selectedShade.name}</span>
                           ${selectedShade.code
                 ? html`<span class="shade-code"
                                 >Shade ${selectedShade.code}</span
+=======
+                          <span class="shade-name">${selectedShade.shadeName}</span>
+                          ${selectedShade.shadeCode
+                            ? html`<span class="shade-code"
+                                >Shade ${selectedShade.shadeCode}</span
+>>>>>>> origin/main
                               >`
                 : ""}
                         </div>
@@ -704,7 +717,7 @@ export class PageProductDetail
         : html`
                   <itsme-button
                     @itsme-click=${this._handleAddToCart}
-                    ?disabled=${stock === 0}
+                    ?disabled=${productStock === 0}
                     style="flex: 1"
                   >
                     Add to Cart
@@ -714,15 +727,16 @@ export class PageProductDetail
             <itsme-button
               @itsme-click=${this._handleBuyNow}
               variant="primary"
-              ?disabled=${stock === 0}
+              ?disabled=${productStock === 0}
               style="flex: 1"
             >
               Buy Now
             </itsme-button>
           </div>
 
-          <div class="description">${description}</div>
+          <div class="description">${this.product.description}</div>
 
+<<<<<<< HEAD
           ${ethicalMarkers && ethicalMarkers.length > 0
         ? html`
                 <div class="meta">
@@ -734,25 +748,41 @@ export class PageProductDetail
         : ""}
           ${benefits
         ? html`
+=======
+          ${this.product.keyBenefits
+            ? html`
+>>>>>>> origin/main
                 <div>
                   <div class="section-title">Benefits</div>
-                  <p>${benefits}</p>
+                  <p>${this.product.keyBenefits}</p>
                 </div>
               `
+<<<<<<< HEAD
         : ""}
           ${usage
         ? html`
+=======
+            : ""}
+          ${this.product.howToUse
+            ? html`
+>>>>>>> origin/main
                 <div>
                   <div class="section-title">How to Use</div>
-                  <p>${usage}</p>
+                  <p>${this.product.howToUse}</p>
                 </div>
               `
+<<<<<<< HEAD
         : ""}
           ${ingredients
         ? html`
+=======
+            : ""}
+          ${this.product.ingredients
+            ? html`
+>>>>>>> origin/main
                 <div>
                   <div class="section-title">Ingredients</div>
-                  <p style="font-size: 0.85rem; color: #555;">${ingredients}</p>
+                  <p style="font-size: 0.85rem; color: #555;">${this.product.ingredients}</p>
                 </div>
               `
         : ""}

@@ -7,12 +7,20 @@
 import { auth, functions } from "./firebase";
 import { AuthService } from "./services/auth";
 import { CartService } from "./services/cart";
+import { AddressService } from "./services/address";
+import { NotificationService } from "@itsme/design-system";
 
 // Initialize Auth Service
 export const authService = new AuthService(auth, functions);
 
 // Initialize Cart Service
 export const cartServiceInstance = new CartService(functions);
+
+// Initialize Address Service
+export const addressService = new AddressService(functions);
+
+// Export Notification Service
+export { NotificationService };
 
 // TODO: Initialize all services when they are fully implemented
 // export const catalogService = new CatalogService(db);
@@ -32,6 +40,7 @@ export {
   catalogService as catalog,
   identityService as identity,
   cartServiceInstance as cart,
+  addressService as address,
   paymentService as payments,
   deliveryService as delivery,
 };

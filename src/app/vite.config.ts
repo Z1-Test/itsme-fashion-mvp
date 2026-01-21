@@ -16,6 +16,7 @@ export default defineConfig({
     port: 3000,
     open: true,
     middlewareMode: false,
+    https: false,
   },
   build: {
     outDir: "dist",

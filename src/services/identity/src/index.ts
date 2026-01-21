@@ -118,3 +118,131 @@ export const registerUser = onCall(async (request) => {
     throw new HttpsError("internal", "Registration failed due to an unknown error.");
   }
 });
+
+
+
+
+
+
+/*
+Save or update address request body:
+{
+  "data": {
+    "uid": "user-id",
+    "street": "123 Fashion Street",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "zip": "400001",
+    "phone": "+91 98765 43210",
+    "label": "Home"
+  }
+}
+*/
+export const saveAddress = onCall(async (request) => {
+  try {
+    const { uid, street, city, state, zip, phone, label } = request.data;
+
+    // Validate input
+    if (!uid || !street || !city || !state || !zip) {
+      throw new HttpsError("invalid-argument", "Missing required fields: uid, street, city, state, zip.");
+    }
+
+    if (!request.auth || request.auth.uid !== uid) {
+      throw new HttpsError("unauthenticated", "User must be authenticated and match the uid.");
+    }
+
+    // Prepare address data
+    const addressData = {
+      street: street.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      zip: zip.trim(),
+      phone: phone ? phone.trim() : "",
+      label: label ? label.trim() : "Home",
+      updatedAt: new Date(),
+    };
+
+    // Update the address field in the user document and remove any old addresses array
+    await db.collection("users").doc(uid).update({
+      address: addressData,
+      addresses: admin.firestore.FieldValue.delete() // Remove old array if it exists
+    });
+
+    logger.info(`Address saved for user: ${uid}`);
+
+    return {
+      success: true,
+      message: "Address saved successfully",
+      address: addressData,
+    };
+  } catch (error) {
+    logger.error("Save address error", error);
+
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+
+    throw new HttpsError("internal", "Failed to save address.");
+  }
+});
+
+/*
+Get address request body:
+{
+  "data": {
+    "uid": "user-id"
+  }
+}
+*/
+export const getAddresses = onCall(async (request) => {
+  try {
+    const { uid } = request.data;
+
+    if (!uid) {
+      throw new HttpsError("invalid-argument", "Missing required field: uid.");
+    }
+
+    if (!request.auth || request.auth.uid !== uid) {
+      throw new HttpsError("unauthenticated", "User must be authenticated and match the uid.");
+    }
+
+    // Fetch address from user document
+    const userRef = db.collection("users").doc(uid);
+    const userDoc = await userRef.get();
+    const userData = userDoc.data() || {};
+
+    // Check for single address field (new structure)
+    let address = userData.address;
+
+    // If no single address but old addresses array exists, migrate it
+    if (!address && userData.addresses && Array.isArray(userData.addresses) && userData.addresses.length > 0) {
+      address = userData.addresses[0]; // Take the first address
+      // Update the document to use new structure and remove old array
+      await userRef.update({
+        address: address,
+        addresses: admin.firestore.FieldValue.delete() // Remove old array
+      });
+      logger.info(`Migrated old addresses array to single address for user: ${uid}`);
+    }
+
+    // Return as array for frontend compatibility
+    const addresses = address ? [address] : [];
+
+    logger.info(`Fetched address for user: ${uid}`);
+
+    return {
+      success: true,
+      addresses: addresses,
+    };
+  } catch (error) {
+    logger.error("Get address error", error);
+
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+
+    throw new HttpsError("internal", "Failed to fetch address.");
+  }
+});
+
+

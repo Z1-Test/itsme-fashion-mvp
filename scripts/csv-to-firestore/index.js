@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
+import axios from 'axios';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,16 +12,112 @@ const BATCH_SIZE = 500;
 // Initialize Firebase Admin SDK for emulator
 admin.initializeApp({
   projectId: 'dev-ecom-test-010126',
+  storageBucket: 'dev-ecom-test-010126.appspot.com' // Add storage bucket for Cloud Storage
 });
 
 // Set emulator host
 process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
+process.env.FIREBASE_STORAGE_EMULATOR_HOST = 'localhost:9199';
 
 const db = admin.firestore();
+const bucket = admin.storage().bucket('dev-ecom-test-010126.appspot.com'); // Use emulator bucket
 db.settings({ ignoreUndefinedProperties: true });
 
 const csvFilePath = path.join(__dirname, '../../data/products.csv');
+const imagesDirPath = path.join(__dirname, '../../src/app/public');
 const collectionName = 'products';
+
+/**
+ * Upload image to Firebase Cloud Storage
+ * @param {string} imagePath - Local path to the image file
+ * @param {string} productId - Product ID for organizing in storage
+ * @param {string} fileName - Original filename
+ * @returns {Promise<string>} - Public URL of uploaded image
+ */
+async function uploadImageToStorage(imagePath, productId, fileName) {
+  try {
+    const destination = `products/${productId}/${fileName}`;
+    const [file] = await bucket.upload(imagePath, {
+      destination,
+      metadata: {
+        contentType: getContentType(fileName),
+        metadata: {
+          uploadedAt: new Date().toISOString(),
+          productId: productId,
+        },
+      },
+      public: true, // Make the file publicly accessible
+    });
+
+    // For emulator, return the local emulator URL
+    // For production, return signed URL
+    let url;
+    if (process.env.FIREBASE_STORAGE_EMULATOR_HOST) {
+      // Emulator URL format - Firebase Storage emulator REST API endpoint
+      // Note: The emulator serves files at /storage/v1/b/bucket/o/path?alt=media
+      url = `http://${process.env.FIREBASE_STORAGE_EMULATOR_HOST}/storage/v1/b/${bucket.name}/o/${encodeURIComponent(destination)}?alt=media`;
+    } else {
+      // Production: Get signed URL
+      [url] = await file.getSignedUrl({
+        action: 'read',
+        expires: '03-09-2491', // Far future date to make it effectively permanent
+      });
+    }
+
+    console.log(`Uploaded image: ${destination}`);
+    return url;
+  } catch (error) {
+    console.error(`Error uploading image ${imagePath}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get content type based on file extension
+ * @param {string} fileName - Filename with extension
+ * @returns {string} - MIME type
+ */
+function getContentType(fileName) {
+  const ext = path.extname(fileName).toLowerCase();
+  switch (ext) {
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg';
+    case '.png':
+      return 'image/png';
+    case '.webp':
+      return 'image/webp';
+    case '.svg':
+      return 'image/svg+xml';
+    default:
+      return 'image/jpeg';
+  }
+}
+
+/**
+ * Find image file for a product
+ * @param {string} productName - Product name to match
+ * @returns {string|null} - Path to image file or null if not found
+ */
+function findProductImage(productName) {
+  try {
+    const files = fs.readdirSync(imagesDirPath);
+    // Look for exact match or close match
+    const imageFile = files.find(file => {
+      const nameWithoutExt = path.parse(file).name;
+      return nameWithoutExt.toLowerCase() === productName.toLowerCase() ||
+             nameWithoutExt.toLowerCase().includes(productName.toLowerCase()) ||
+             productName.toLowerCase().includes(nameWithoutExt.toLowerCase());
+    });
+
+    if (imageFile) {
+      return path.join(imagesDirPath, imageFile);
+    }
+  } catch (error) {
+    console.error(`Error reading images directory:`, error);
+  }
+  return null;
+}
 
 async function importCSV() {
   const csvData = fs.readFileSync(csvFilePath, 'utf8');
@@ -45,7 +142,7 @@ async function importCSV() {
     if (!productsMap.has(productId)) {
       productsMap.set(productId, {
         common: {
-          url: row['URL'] || '',
+          githubUrl: row['URL'] || '', // Store original GitHub URL
           productId: row['Product ID'],
           category: row['Category'] || '',
           productName: row['Product name'] || '',
@@ -102,23 +199,44 @@ async function importCSV() {
 
   console.log(`Grouped into ${productsMap.size} unique products.`);
 
-  // Batch write to Firestore
+  // Process and upload images, then batch write to Firestore
   let batch = db.batch();
   let count = 0;
 
   for (const [productId, productData] of productsMap) {
-    const docRef = db.collection(collectionName).doc(productId);
-    batch.set(docRef, {
-      ...productData.common,
-      shades: productData.shades
-    });
-    count++;
+    try {
+      // Find and upload product image
+      const imagePath = findProductImage(productData.common.productName);
+      let imageUrl = null;
 
-    // Firestore batch limit is 500
-    if (count % BATCH_SIZE === 0) {
-      await batch.commit();
-      console.log(`Committed batch of ${count} products.`);
-      batch = db.batch();
+      if (imagePath) {
+        const fileName = path.basename(imagePath);
+        console.log(`Uploading image for ${productData.common.productName}...`);
+        imageUrl = await uploadImageToStorage(imagePath, productId, fileName);
+        if (imageUrl) {
+          console.log(`Image uploaded successfully: ${imageUrl}`);
+        }
+      } else {
+        console.warn(`No image found for product: ${productData.common.productName}`);
+      }
+
+      const docRef = db.collection(collectionName).doc(productId);
+      batch.set(docRef, {
+        ...productData.common,
+        url: imageUrl || productData.common.githubUrl, // Use image URL as main URL, fallback to GitHub URL
+        imageUrl: imageUrl, // Keep separate imageUrl field for reference
+        shades: productData.shades
+      });
+      count++;
+
+      // Firestore batch limit is 500
+      if (count % BATCH_SIZE === 0) {
+        await batch.commit();
+        console.log(`Committed batch of ${count} products.`);
+        batch = db.batch();
+      }
+    } catch (error) {
+      console.error(`Error processing product ${productId}:`, error);
     }
   }
 

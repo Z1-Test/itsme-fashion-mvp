@@ -3,9 +3,20 @@ import { initializeApp } from "firebase-admin/app";
 // Initialize Firebase Admin SDK once for all services
 initializeApp();
 
+// Cart Service
 export { addToCart, removeFromCart, clearCart } from "./src/services/cart/src/index";
-export { catalog } from "./src/services/catalog/src/index";
-export { payments } from "./src/services/payments/src/index";
+
+// Catalog Service
+export { getAllProducts, getProductsByCategory, getProductById } from "./src/services/catalog/src/index";
+
+// Delivery Service
 export { delivery } from "./src/services/delivery/src/index";
+
+// Identity Service
+export { registerUser, saveAddress, getAddresses } from "./src/services/identity/src/index";
+
+// Payments Service
+export { payments } from "./src/services/payments/src/index";
+
+// WishList Service
 export { addToWishList, removeFromWishList } from "./src/services/wishList/src/index";
-export { registerUser } from "./src/services/identity/src/index";
