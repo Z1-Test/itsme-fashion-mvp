@@ -1,5 +1,11 @@
+import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 import { onCall } from "firebase-functions/v2/https";
+
+// Initialize Firebase Admin SDK if not already initialized
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 export const addToWishList = onCall(async (request) => {
   const productId = request.data.productId;
