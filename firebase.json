@@ -7,7 +7,11 @@
   },
   "hosting": {
     "public": "src/app/dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "**",
@@ -17,21 +21,34 @@
   },
   "functions": [
     {
+      "source": "lib/services/cart",
+      "codebase": "cart",
+      "runtime": "nodejs24"
+    },
+    {
       "source": "lib/services/catalog",
-      "codebase": "default",
-      "runtime": "nodejs24",
-      "disallowLegacyRuntimeConfig": true,
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
+      "codebase": "catalog",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/identity",
+      "codebase": "identity",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/payments",
+      "codebase": "payments",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/delivery",
+      "codebase": "delivery",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/wishList",
+      "codebase": "wishlist",
+      "runtime": "nodejs24"
     }
   ],
   "storage": {
