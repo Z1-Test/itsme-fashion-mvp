@@ -17,7 +17,7 @@
   },
   "functions": [
     {
-      "source": "lib/services/identity",
+      "source": "lib/services/catalog",
       "codebase": "default",
       "runtime": "nodejs24",
       "disallowLegacyRuntimeConfig": true,
