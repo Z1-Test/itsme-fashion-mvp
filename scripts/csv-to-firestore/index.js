@@ -32,66 +32,86 @@ async function importCSV() {
 
   console.log(`Parsed ${results.length} products from CSV.`);
 
-  // Batch write to Firestore
-  let batch = db.batch();
-  let count = 0;
+  // Group products by Product ID
+  const productsMap = new Map();
 
-  for (const product of results) {
-    const docId = product['SKU'];
-    if (!docId) {
-      console.warn('Skipping product without SKU:', product);
+  for (const row of results) {
+    const productId = row['Product ID'];
+    if (!productId) {
+      console.warn('Skipping row without Product ID:', row);
       continue;
     }
 
-    // Clean up the data, convert types
-    const cleanedProduct = {
+    if (!productsMap.has(productId)) {
+      productsMap.set(productId, {
+        common: {
+          url: row['URL'] || '',
+          productId: row['Product ID'],
+          category: row['Category'] || '',
+          productName: row['Product name'] || '',
+          productCode: row['Product code'] || '',
+          tagline: row['Tagline'] || '',
+          shortDescription: row['Short description'] || '',
+          description: row['Description'] || '',
+          keyBenefits: row['Key benefits'] || '',
+          ingredients: row['Ingredients'] || '',
+          howToUse: row['How to Use'] || '',
+          caution: row['Caution'] || '',
+          shippingAndDelivery: row['Shipping and Delivery'] || '',
+          productLink: row['Product link'] || '',
+        },
+        shades: []
+      });
+    }
+
+    // Add shade
+    const shade = {
       no: (() => {
-        const val = parseInt(product['No']);
+        const val = parseInt(row['No']);
         if (isNaN(val)) {
-          console.warn(`Invalid 'No' for SKU ${product['SKU']}: ${product['No']}`);
+          console.warn(`Invalid 'No' for Product ID ${productId}: ${row['No']}`);
           return 0;
         }
         return val;
       })(),
-      url: product['URL'] || '',
-      productId: product['Product ID'],
-      category: product['Category'] || '',
-      productName: product['Product name'] || '',
-      productCode: product['Product code'] || '',
-      sku: product['SKU'] || '',
-      shadeName: product['Shade name'] || '',
-      shadeCode: product['Shade code'] || '',
-      hexCode: product['Hex code'] || '',
+      sku: row['SKU'] || '',
+      shadeName: row['Shade name'] || '',
+      shadeCode: row['Shade code'] || '',
+      hexCode: row['Hex code'] || '',
       price: (() => {
-        const val = parseFloat(product['Price (₹)']);
+        const val = parseFloat(row['Price (₹)']);
         if (isNaN(val)) {
-          console.warn(`Invalid price for SKU ${product['SKU']}: ${product['Price (₹)']}`);
+          console.warn(`Invalid price for Product ID ${productId}: ${row['Price (₹)']}`);
           return 0;
         }
         return val;
       })(),
       stock: (() => {
-        const val = parseInt(product['Stock']);
+        const val = parseInt(row['Stock']);
         if (isNaN(val)) {
-          console.warn(`Invalid stock for SKU ${product['SKU']}: ${product['Stock']}`);
+          console.warn(`Invalid stock for Product ID ${productId}: ${row['Stock']}`);
           return 0;
         }
         return val;
       })(),
-      quantity: product['Quantity'] || '',
-      tagline: product['Tagline'] || '',
-      shortDescription: product['Short description'] || '',
-      description: product['Description'] || '',
-      keyBenefits: product['Key benefits'] || '',
-      ingredients: product['Ingredients'] || '',
-      howToUse: product['How to Use'] || '',
-      caution: product['Caution'] || '',
-      shippingAndDelivery: product['Shipping and Delivery'] || '',
-      productLink: product['Product link'] || '',
+      quantity: row['Quantity'] || '',
     };
 
-    const docRef = db.collection(collectionName).doc(docId);
-    batch.set(docRef, cleanedProduct);
+    productsMap.get(productId).shades.push(shade);
+  }
+
+  console.log(`Grouped into ${productsMap.size} unique products.`);
+
+  // Batch write to Firestore
+  let batch = db.batch();
+  let count = 0;
+
+  for (const [productId, productData] of productsMap) {
+    const docRef = db.collection(collectionName).doc(productId);
+    batch.set(docRef, {
+      ...productData.common,
+      shades: productData.shades
+    });
     count++;
 
     // Firestore batch limit is 500

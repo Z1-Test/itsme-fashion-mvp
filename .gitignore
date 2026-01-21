@@ -1,7 +1,12 @@
 node_modules/
 dist/
 lib/
+*.tsbuildinfo
 
+# Build outputs
+src/app/dist/
+src/packages/*/dist/
+src/services/*/lib/
 
 # Firebase emulator logs and temp files
 firebase-debug.log

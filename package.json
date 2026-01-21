@@ -4,9 +4,25 @@
   "description": "It's Me Fashion - Monorepo with Lit + Vite + Firebase",
   "type": "module",
   "main": "lib/index.js",
+  "workspaces": [
+    "src/app",
+    "src/packages/design-system",
+    "src/packages/shared-utils",
+    "src/services/cart",
+    "src/services/catalog",
+    "src/services/delivery",
+    "src/services/identity",
+    "src/services/payments",
+    "src/services/wishList"
+  ],
   "scripts": {
-    "build": "tsc",
-    "dev": "firebase emulators:start",
+    "build": "npm run build:packages && npm run build:services",
+    "build:packages": "npm run build -w @itsme/shared-utils && npm run build -w @itsme/design-system",
+    "build:services": "tsc",
+    "build:app": "npm run build -w @itsme/app",
+    "dev": "npm run dev:app",
+    "dev:app": "npm run dev -w @itsme/app",
+    "dev:full": "concurrently \"npm run dev:app\" \"npm run emulators:start\"",
     "emulators:start": "npm run build && firebase emulators:start",
     "import-csv": "node scripts/csv-to-firestore/index.js",
     "lint": "eslint . --ext .ts,.tsx",
@@ -16,6 +32,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "eslint": "^8.54.0",
     "firebase-admin": "^12.0.0",
     "firebase-functions": "^7.0.0",
@@ -24,6 +41,10 @@
   },
   "dependencies": {
     "csv-parse": "^6.1.0",
+    "vitest": "^1.0.0",
+    "csv-parse": "^5.5.0"
+  },
+  "dependencies": {
     "firebase-admin": "^12.0.0",
     "firebase-functions": "^7.0.0"
   }
