@@ -5,12 +5,12 @@ import { MOCK_PRODUCTS } from "../mock-products";
 import type { Product, ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
+import { cart } from "../services";
 
 @customElement("page-product-detail")
 export class PageProductDetail
   extends LitElement
-  implements BeforeEnterObserver
-{
+  implements BeforeEnterObserver {
   static styles = css`
     :host {
       display: block;
@@ -496,8 +496,24 @@ export class PageProductDetail
     window.dispatchEvent(new Event("cart-updated"));
   }
 
-  private _handleAddToCart() {
-    this._updateCart(1, true);
+  private async _handleAddToCart() {
+    if (!this.product) return;
+
+    try {
+      // Call the cloud function to add product to Firestore cart
+      const result = await cart.addToCart(this.product.id);
+
+      if (result.success) {
+        // Also update local cart for UI consistency
+        this._updateCart(1, true);
+        NotificationService.success(result.message);
+      } else {
+        NotificationService.error("Failed to add to cart");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      NotificationService.error("Error adding product to cart");
+    }
   }
 
   private _incrementQuantity() {
@@ -591,8 +607,8 @@ export class PageProductDetail
               class="wishlist-btn ${this.isInWishlist ? "wishlisted" : ""}"
               @click=${this._toggleWishlist}
               title="${this.isInWishlist
-                ? "Remove from wishlist"
-                : "Add to wishlist"}"
+        ? "Remove from wishlist"
+        : "Add to wishlist"}"
             >
               <svg
                 class="heart-icon"
@@ -611,12 +627,12 @@ export class PageProductDetail
             <div class="brand">${brand}</div>
             <h1>${name}</h1>
             ${tagline
-              ? html`<p
+        ? html`<p
                   style="font-style: italic; color: #666; margin-top: 0.5rem;"
                 >
                   ${tagline}
                 </p>`
-              : ""}
+        : ""}
           </div>
 
           <div class="price">${formatCurrency(price)}</div>
@@ -624,51 +640,51 @@ export class PageProductDetail
           <div>${stockStatus}</div>
 
           ${shadesList.length > 0
-            ? html`
+        ? html`
                 <div class="shades">
                   <div class="shade-title">Available Shades</div>
                   <div class="shade-swatches">
                     ${visibleShades.map(
-                      (s, idx) => html`
+          (s, idx) => html`
                         <button
                           class="shade-swatch ${normalizedSelectedIndex === idx
-                            ? "selected"
-                            : ""}"
+              ? "selected"
+              : ""}"
                           style="background-color: ${s.hexCode}"
                           title=${s.name}
                           @click=${() => this._selectShade(idx)}
                         >
                           ${normalizedSelectedIndex === idx
-                            ? html`<span class="shade-check">✓</span>`
-                            : ""}
+              ? html`<span class="shade-check">✓</span>`
+              : ""}
                         </button>
                       `,
-                    )}
+        )}
                     ${remainingShades > 0
-                      ? html`<span class="shade-more"
+            ? html`<span class="shade-more"
                           >+${remainingShades} more</span
                         >`
-                      : ""}
+            : ""}
                   </div>
                   ${selectedShade
-                    ? html`
+            ? html`
                         <div class="shade-meta">
                           <span class="shade-name">${selectedShade.name}</span>
                           ${selectedShade.code
-                            ? html`<span class="shade-code"
+                ? html`<span class="shade-code"
                                 >Shade ${selectedShade.code}</span
                               >`
-                            : ""}
+                : ""}
                         </div>
                       `
-                    : ""}
+            : ""}
                 </div>
               `
-            : ""}
+        : ""}
 
           <div class="actions">
             ${this.cartQuantity > 0
-              ? html`
+        ? html`
                   <div class="quantity-controls">
                     <button
                       class="quantity-btn"
@@ -685,7 +701,7 @@ export class PageProductDetail
                     </button>
                   </div>
                 `
-              : html`
+        : html`
                   <itsme-button
                     @itsme-click=${this._handleAddToCart}
                     ?disabled=${stock === 0}
@@ -708,38 +724,38 @@ export class PageProductDetail
           <div class="description">${description}</div>
 
           ${ethicalMarkers && ethicalMarkers.length > 0
-            ? html`
+        ? html`
                 <div class="meta">
                   ${ethicalMarkers.map(
-                    (m) => html`<span class="tag">${m}</span>`,
-                  )}
+          (m) => html`<span class="tag">${m}</span>`,
+        )}
                 </div>
               `
-            : ""}
+        : ""}
           ${benefits
-            ? html`
+        ? html`
                 <div>
                   <div class="section-title">Benefits</div>
                   <p>${benefits}</p>
                 </div>
               `
-            : ""}
+        : ""}
           ${usage
-            ? html`
+        ? html`
                 <div>
                   <div class="section-title">How to Use</div>
                   <p>${usage}</p>
                 </div>
               `
-            : ""}
+        : ""}
           ${ingredients
-            ? html`
+        ? html`
                 <div>
                   <div class="section-title">Ingredients</div>
                   <p style="font-size: 0.85rem; color: #555;">${ingredients}</p>
                 </div>
               `
-            : ""}
+        : ""}
         </div>
       </div>
     `;
