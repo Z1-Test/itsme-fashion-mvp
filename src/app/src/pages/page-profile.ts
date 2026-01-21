@@ -1,6 +1,9 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
+import { addressService } from "../services";
+import { authService } from "../services";
+import type { Address } from "../services/address";
 
 interface MockUser {
   email: string;
@@ -853,6 +856,7 @@ export class PageProfile extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._loadUserAndOrders();
+    this._loadAddresses();
   }
 
   private _loadUserAndOrders() {
@@ -917,10 +921,62 @@ export class PageProfile extends LitElement {
     this.editFormData = { ...this.editFormData, [field]: value };
   }
 
-  private _saveAddress() {
-    this.savedAddress = { ...this.editFormData };
-    localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
-    this.editingAddress = false;
+  private async _saveAddress() {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user || !user.uid) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const addressData: Address = {
+        uid: user.uid,
+        street: this.editFormData.street,
+        city: this.editFormData.city,
+        state: this.editFormData.state,
+        zip: this.editFormData.zip,
+        phone: this.editFormData.phone,
+        label: this.editFormData.label || "Home",
+      };
+
+      // Save address
+      await addressService.saveAddress(addressData);
+
+      alert("Address saved successfully");
+
+      this.editingAddress = false;
+      this.savedAddress = { ...this.editFormData };
+      localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
+    } catch (error) {
+      console.error("Error saving address:", error);
+      alert(`Error saving address: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }
+
+  private async _loadAddresses() {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user || !user.uid) return;
+
+      const addresses = await addressService.getAddresses(user.uid);
+      if (addresses.length > 0) {
+        const address = addresses[0];
+        this.savedAddress = {
+          label: address.label || "Home",
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zip: address.zip,
+          phone: address.phone,
+        };
+        localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
+      } else {
+        this._initializeMockAddress();
+      }
+    } catch (error) {
+      console.error("Error loading addresses:", error);
+      this._initializeMockAddress();
+    }
   }
 
   private _toggleOrderExpanded(orderId: string) {
@@ -932,7 +988,8 @@ export class PageProfile extends LitElement {
       return html`<div class="container">Loading...</div>`;
     }
 
-    const initials = this.currentUser.displayName
+    const displayName = this.currentUser.displayName || "User";
+    const initials = displayName
       .split(" ")
       .map((n) => n[0])
       .join("")
@@ -946,8 +1003,8 @@ export class PageProfile extends LitElement {
         <div class="profile-header">
           <div class="profile-avatar">${initials}</div>
           <div class="profile-header-info">
-            <h2>${this.currentUser.displayName}</h2>
-            <p>${this.currentUser.email}</p>
+            <h2>${displayName}</h2>
+            <p>${this.currentUser.email || "No email"}</p>
             <p style="font-size: 0.875rem; color: #999;">
               Member since January 2026
             </p>
