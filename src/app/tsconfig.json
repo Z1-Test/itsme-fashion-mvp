@@ -17,14 +17,14 @@
     "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@itsme/shared-utils": ["../packages/shared-utils/dist/index.d.ts"],
-      "@itsme/design-system": ["../packages/design-system/dist/index.d.ts"],
-      "@itsme/service-catalog": ["../services/catalog/lib/index.d.ts"],
-      "@itsme/service-identity": ["../services/identity/lib/index.d.ts"],
-      "@itsme/service-cart": ["../services/cart/lib/index.d.ts"],
-      "@itsme/service-payments": ["../services/payments/lib/index.d.ts"],
-      "@itsme/service-delivery": ["../services/delivery/lib/index.d.ts"],
-      "@itsme/service-wishlist": ["../services/wishList/lib/index.d.ts"]
+      "@itsme/shared-utils": ["../../lib/packages/shared-utils/index.d.ts"],
+      "@itsme/design-system": ["../../lib/packages/design-system/index.d.ts"],
+      "@itsme/service-catalog": ["../../lib/services/catalog/index.d.ts"],
+      "@itsme/service-identity": ["../../lib/services/identity/index.d.ts"],
+      "@itsme/service-cart": ["../../lib/services/cart/index.d.ts"],
+      "@itsme/service-payments": ["../../lib/services/payments/index.d.ts"],
+      "@itsme/service-delivery": ["../../lib/services/delivery/index.d.ts"],
+      "@itsme/service-wishlist": ["../../lib/services/wishList/index.d.ts"]
     }
   },
   "include": ["src/**/*"],

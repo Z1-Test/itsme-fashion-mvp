@@ -1,19 +1,115 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-import {onRequest} from "firebase-functions/https";
+import {onCall, HttpsError} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
+import admin from "firebase-admin";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+// Initialize Firebase Admin SDK
+admin.initializeApp();
+const db = admin.firestore();
+const auth = admin.auth();
 
-export const identity = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+/*
+request body:
+{
+  "data": {
+    "displayName": "Jane Smith",
+    "email": "jane@example.com",
+    "password": "securePassword123"
+  }
+}
+*/
+export const registerUser = onCall(async (request) => {
+  try {
+    const { displayName, email, password } = request.data;
+
+    // Validate input
+   if (!displayName || !email || !password) {  
+      throw new HttpsError("invalid-argument", "Missing required fields: displayName, email, password.");  
+    }  
+
+    if (typeof displayName !== "string" || displayName.trim().length === 0) {  
+      throw new HttpsError("invalid-argument", "Name must be a non-empty string.");  
+    }  
+
+    // Use a regex for more robust email validation.  
+    const emailRegex = /^[\s\S]+@[\s\S]+\.[\s\S]+$/;  
+    if (typeof email !== "string" || !emailRegex.test(email)) {  
+      throw new HttpsError("invalid-argument", "Invalid email address.");  
+    }  
+
+    if (typeof password !== "string" || password.length < 6) {  
+      throw new HttpsError("invalid-argument", "Password must be at least 6 characters long.");  
+    }  
+
+
+    // Create user in Firebase Authentication
+    const userRecord = await auth.createUser({
+      email: email.toLowerCase(),
+      password: password,
+      displayName: displayName.trim(),
+    });
+
+    logger.info(`User created in Auth: ${userRecord.uid}`, {
+      uid: userRecord.uid,
+      email: userRecord.email,
+    });
+
+    // Create user document in Firestore with default role
+    const userData = {
+      uid: userRecord.uid,
+      displayName: displayName.trim(),
+      email: email.toLowerCase(),
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      status: "active",
+    };
+
+    await db.collection("users").doc(userRecord.uid).set(userData);
+
+    logger.info(`User document created in Firestore: ${userRecord.uid}`, {
+      uid: userRecord.uid,
+    });
+
+    return {
+      success: true,
+      uid: userRecord.uid,
+      message: "User registered successfully",
+      user: {
+        uid: userRecord.uid,
+        displayName: userData.displayName,
+        email: userData.email,
+        role: userData.role,
+      },
+    };
+  } catch (error) {
+    logger.error("Registration error", error);
+
+    // Handle Firebase Auth errors
+    if (error instanceof HttpsError) {  
+      // This will catch HttpsErrors thrown from the validation logic.  
+      throw error;  
+    }  
+
+    if (error instanceof Error) {  
+      const firebaseError = error as { code?: string; message: string };  
+      // Handle Firebase Auth errors by code for robustness  
+      if (firebaseError.code) {  
+        switch (firebaseError.code) {  
+          case 'auth/email-already-exists':  
+          case 'auth/email-already-in-use':  
+            throw new HttpsError('already-exists', 'An account with this email already exists.');  
+          case 'auth/invalid-email':  
+            throw new HttpsError('invalid-argument', 'The email address is badly formatted.');  
+          case 'auth/weak-password':  
+            throw new HttpsError('invalid-argument', 'Password must be at least 6 characters long.');  
+          default:  
+            // Log other Firebase errors but return a generic message to the client  
+            logger.error('Unhandled Firebase Auth error', { code: firebaseError.code, message: firebaseError.message });  
+            throw new HttpsError('internal', 'An unexpected error occurred during registration.');  
+        }  
+      }  
+    }  
+
+    // Fallback for other types of errors  
+    throw new HttpsError("internal", "Registration failed due to an unknown error.");  
+}});

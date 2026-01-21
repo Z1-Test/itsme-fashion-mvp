@@ -6,7 +6,7 @@
     "moduleResolution": "bundler",
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./dist",
+    "outDir": "../../../lib/packages/shared-utils",
     "rootDir": "./src",
     "composite": true,
     "strict": true,

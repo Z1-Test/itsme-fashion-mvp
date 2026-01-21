@@ -17,7 +17,7 @@
   },
   "functions": [
     {
-      "source": "lib",
+      "source": "lib/services/identity",
       "codebase": "default",
       "runtime": "nodejs24",
       "disallowLegacyRuntimeConfig": true,

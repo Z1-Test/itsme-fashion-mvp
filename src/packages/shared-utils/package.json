@@ -2,8 +2,8 @@
   "name": "@itsme/shared-utils",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "../../../lib/packages/shared-utils/index.js",
+  "types": "../../../lib/packages/shared-utils/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
