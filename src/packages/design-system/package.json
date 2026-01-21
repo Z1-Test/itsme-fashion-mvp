@@ -2,12 +2,12 @@
   "name": "@itsme/design-system",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "../../../lib/packages/design-system/index.js",
+  "types": "../../../lib/packages/design-system/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "../../../lib/packages/design-system/index.d.ts",
+      "default": "../../../lib/packages/design-system/index.js"
     }
   },
   "scripts": {

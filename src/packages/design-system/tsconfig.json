@@ -6,7 +6,7 @@
     "moduleResolution": "bundler",
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./dist",
+    "outDir": "../../../lib/packages/design-system",
     "rootDir": "./src",
     "composite": true,
     "strict": true,
@@ -14,9 +14,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
-    "useDefineForClassFields": false
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+    "baseUrl": ".",
+    "paths": {
+      "@itsme/shared-utils": ["../../../lib/packages/shared-utils/index.d.ts"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "../shared-utils" }]
+  "exclude": ["node_modules", "dist"]
 }

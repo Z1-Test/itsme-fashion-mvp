@@ -25,15 +25,6 @@
       ]
     }
   },
-  "include": [
-    "index.ts",
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "coverage",
-    "src/packages",
-    "src/app"
-  ]
+  "include": ["index.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "coverage"]
 }

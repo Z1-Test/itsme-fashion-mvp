@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { authService } from "../services";
 
 @customElement("page-register")
 export class PageRegister extends LitElement {
@@ -245,7 +246,7 @@ export class PageRegister extends LitElement {
     this.error = "";
   }
 
-  private _handleSubmit(e: Event) {
+  private async _handleSubmit(e: Event) {
     e.preventDefault();
 
     if (!this.name.trim()) {
@@ -268,16 +269,24 @@ export class PageRegister extends LitElement {
       return;
     }
 
-    // Mock registration - just store user data in localStorage
-    const user = {
-      email: this.email,
-      displayName: this.name,
-      registeredAt: new Date().toISOString(),
-    };
+    try {
+      // Use cloud function for registration
+      const user = await authService.register({
+        email: this.email,
+        password: this.password,
+        displayName: this.name,
+      });
+      
+      console.log("✅ Registration successful:", user);
+      
+      // Store user info in localStorage for quick access
+      localStorage.setItem("user", JSON.stringify(user));
 
-    localStorage.setItem("user", JSON.stringify(user));
-
-    // Redirect to products
-    window.location.href = "/products";
+      // Redirect to products
+      window.location.href = "/products";
+    } catch (error: any) {
+      this.error = error.message || "Registration failed. Please try again.";
+      console.error("Registration error:", error);
+    }
   }
 }

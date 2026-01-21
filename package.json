@@ -16,10 +16,12 @@
     "src/services/wishList"
   ],
   "scripts": {
-    "build": "npm run build:packages && npm run build:services",
+    "build": "npm run build:packages && npm run build:services && npm run build:root && npm run build:app && npm run build:copy-pkg",
     "build:packages": "npm run build -w @itsme/shared-utils && npm run build -w @itsme/design-system",
-    "build:services": "tsc",
+    "build:services": "npm run build -w @itsme/service-catalog && npm run build -w @itsme/service-identity && npm run build -w @itsme/service-cart && npm run build -w @itsme/service-payments && npm run build -w @itsme/service-delivery && npm run build -w @itsme/service-wishlist",
+    "build:root": "tsc",
     "build:app": "npm run build -w @itsme/app",
+    "build:copy-pkg": "for service in cart catalog delivery identity payments wishList; do cp src/services/$service/package.json lib/services/$service/package.json 2>/dev/null || true; done",
     "dev": "npm run dev:app",
     "dev:app": "npm run dev -w @itsme/app",
     "dev:full": "concurrently \"npm run dev:app\" \"npm run emulators:start\"",
@@ -34,13 +36,14 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "eslint": "^8.54.0",
-    "firebase-admin": "^12.0.0",
+    "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0",
-    "csv-parse": "^5.5.0"
+    "vitest": "^1.0.0"
   },
   "dependencies": {
+    "csv-parse": "^6.1.0",
+    "vitest": "^1.0.0",
     "firebase-admin": "^12.0.0",
     "firebase-functions": "^7.0.0"
   }
