@@ -20,6 +20,7 @@ const PRODUCTS_COLLECTION = "products";
 export interface Product {
   id: string;
   url?: string;
+  imageUrl?: string;
   productId: string;
   category: string;
   productName: string;

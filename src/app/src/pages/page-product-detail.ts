@@ -584,7 +584,7 @@ export class PageProductDetail
       <a href="/products" class="back-link">← Back to Products</a>
       <div class="container">
         <div class="image-container">
-          <img src="https://placehold.co/600x600?text=${encodeURIComponent(productName)}" alt="${productName}" />
+          <img src="${this.product?.imageUrl || this.product?.url || `https://placehold.co/600x600?text=${encodeURIComponent(productName)}`}" alt="${productName}" />
           <div class="wishlist-btn-container">
             <button
               class="wishlist-btn ${this.isInWishlist ? "wishlisted" : ""}"
