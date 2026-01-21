@@ -1,19 +1,43 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { getFirestore } from "firebase-admin/firestore";
+import { onCall } from "firebase-functions/v2/https";
 
-import {onRequest} from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
+export const addToWishList = onCall(async (request) => {
+  const productId = request.data.productId;
+  if (!productId) {
+    throw new Error("Product ID is required");
+  }
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+  const db = getFirestore();
+  const productSnapshot = await db.collection("products").doc(productId).get();
+  if (!productSnapshot.exists) {
+    throw new Error("Product not found");
+  }
 
-export const wishList = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
+  const productData = productSnapshot.data();
+  await db.collection("wishList").add(productData!);
+
+  return { success: true, message: "Product added to wishList" };
+});
+
+export const removeFromWishList = onCall(async (request) => {
+  const productId = request.data.productId;
+  if (!productId) {
+    throw new Error("Product ID is required");
+  }
+
+  const db = getFirestore();
+  const wishListSnapshot = await db.collection("wishList").where("productId", "==", productId).get();
+
+  if (wishListSnapshot.empty) {
+    return { success: false, message: "Product not found in wishList" };
+  }
+
+  const batch = db.batch();
+  wishListSnapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  await batch.commit();
+
+  return { success: true, message: "Product removed from wishList" };
 });
