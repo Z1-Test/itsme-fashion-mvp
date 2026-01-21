@@ -5,7 +5,7 @@ import { getProductById, type Product } from "../services/catalog";
 import type { ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
-import { cart } from "../services";
+import { cart, authService } from "../services";
 
 @customElement("page-product-detail")
 export class PageProductDetail
@@ -390,27 +390,37 @@ export class PageProductDetail
     }
   }
 
-  private _checkCartStatus() {
+  private async _checkCartStatus() {
     if (!this.product) return;
     try {
-      const cartData = localStorage.getItem("cart");
-      const cart = cartData ? JSON.parse(cartData) : { items: [] };
+      if (true) { // authService.getCurrentUser()) {
+        // Check from service
+        const result = await cart.getCart();
+        if (result.success) {
+          const shades = this.product?.shades || [];
+          const selectedShade =
+            shades.length > 0 ? shades[this.selectedShadeIndex] : null;
 
-      const shades = this.product?.shades || [];
-      const selectedShade =
-        shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+          const existingItem = result.cart.items.find((item: any) => {
+            const isSameProduct = item.productId === this.product?.id;
+            const isSameShade = selectedShade
+              ? item.shade?.hexCode === selectedShade.hexCode
+              : !item.shade;
+            return isSameProduct && isSameShade;
+          });
 
-      const existingItem = cart.items.find((item: any) => {
-        const isSameProduct = item.productId === this.product?.id;
-        const isSameShade = selectedShade
-          ? item.selectedShade?.hexCode === selectedShade.hexCode
-          : !item.selectedShade;
-        return isSameProduct && isSameShade;
-      });
-
-      if (existingItem) {
-        this.cartQuantity = existingItem.quantity;
+          if (existingItem) {
+            this.cartQuantity = existingItem.quantity;
+          } else {
+            this.cartQuantity = 0;
+          }
+        } else {
+          this.cartQuantity = 0;
+        }
       } else {
+        // Check from localStorage - commented out
+        // const cartData = localStorage.getItem("cart");
+        // const cart = cartData ? JSON.parse(cartData) : { items: [] };
         this.cartQuantity = 0;
       }
     } catch (e) {
@@ -448,77 +458,124 @@ export class PageProductDetail
     );
   }
 
-  private _updateCart(quantity: number, showNotification = false) {
+  private async _updateCart(newQuantity: number, showNotification = false) {
     if (!this.product) return;
 
     const productStock = this.product.shades?.[0]?.stock || 0;
     
-    if (productStock < quantity) {
+    if (productStock < newQuantity) {
       NotificationService.error("Not enough stock available");
       return;
     }
-
-    const cartData = localStorage.getItem("cart");
-    const cart = cartData ? JSON.parse(cartData) : { items: [] };
 
     const shades = this.product?.shades || [];
     const selectedShade =
       shades.length > 0 ? shades[this.selectedShadeIndex] : null;
 
-    const existingItemIndex = cart.items.findIndex((item: any) => {
-      const isSameProduct = item.productId === this.product?.id;
-      const isSameShade = selectedShade
-        ? item.selectedShade?.hexCode === selectedShade.hexCode
-        : !item.selectedShade;
-      return isSameProduct && isSameShade;
-    });
-
-    if (quantity > 0) {
-      if (existingItemIndex > -1) {
-        cart.items[existingItemIndex].quantity = quantity;
-      } else {
-        cart.items.push({
-          productId: this.product.id,
-          product: this.product,
-          quantity: quantity,
-          price: this.product.shades?.[0]?.price || 0,
-          selectedShade: selectedShade,
-        });
-      }
-      if (showNotification) {
-        NotificationService.success(`Added ${this.product.productName} to cart`);
+    if (true) { // authService.getCurrentUser()) {
+      // Update via service
+      try {
+        if (newQuantity === 0) {
+          // Remove from cart
+          await cart.removeFromCart(this.product.id);
+          if (showNotification) {
+            NotificationService.info(`Removed ${this.product.productName} from cart`);
+          }
+        } else {
+          // Calculate the delta (how much to add or remove)
+          const delta = newQuantity - this.cartQuantity;
+          
+          if (delta > 0) {
+            // Add items
+            await cart.addToCart(this.product.id, delta, selectedShade);
+            if (showNotification) {
+              NotificationService.success(`Added ${this.product.productName} to cart`);
+            }
+          } else if (delta < 0) {
+            // For now, removing requires full removal since we don't have updateQuantity function
+            // We need to remove and re-add with new quantity
+            await cart.removeFromCart(this.product.id);
+            if (newQuantity > 0) {
+              await cart.addToCart(this.product.id, newQuantity, selectedShade);
+            }
+          }
+        }
+        this.cartQuantity = newQuantity;
+        window.dispatchEvent(new Event("cart-updated"));
+      } catch (error) {
+        console.error("Error updating cart:", error);
+        NotificationService.error("Failed to update cart");
       }
     } else {
-      if (existingItemIndex > -1) {
-        cart.items.splice(existingItemIndex, 1);
-        if (showNotification) {
-          NotificationService.info(`Removed ${this.product.productName} from cart`);
-        }
-      }
+      // Not authenticated - skip cart update
+      console.warn("Cart update requires authentication");
     }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    this.cartQuantity = quantity;
-    window.dispatchEvent(new Event("cart-updated"));
   }
 
   private async _handleAddToCart() {
     if (!this.product) return;
 
     try {
-      // Call the cloud function to add product to Firestore cart
-      const result = await cart.addToCart(this.product.id);
+      // Verify cart service is available
+      if (!cart) {
+        console.error("❌ Cart service is not available");
+        NotificationService.error("Cart service is not initialized");
+        return;
+      }
+
+      const shades = this.product?.shades || [];
+      const selectedShade =
+        shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+
+      const productStock = this.product.shades?.[0]?.stock || 0;
+      if (productStock === 0) {
+        NotificationService.error("Product is out of stock");
+        return;
+      }
+
+      console.log("🛒 Cart service:", cart);
+      console.log("🛒 Adding to cart:", { 
+        productId: this.product.id, 
+        quantity: 1, 
+        shade: selectedShade 
+      });
+
+      // Show loading notification
+      NotificationService.info("Adding to cart...");
+
+      // Call the cloud function to add 1 item to Firestore cart
+      const result = await cart.addToCart(this.product.id, 1, selectedShade);
+
+      console.log("📦 Cart service response:", result);
 
       if (result.success) {
-        // Also update local cart for UI consistency
-        this._updateCart(1, true);
-        NotificationService.success(result.message);
+        console.log("✅ Product added to cart:", result);
+        // Update local state
+        this.cartQuantity += 1;
+        // Dispatch event for other components to reload
+        window.dispatchEvent(new Event("cart-updated"));
+        NotificationService.success(result.message || "Added to cart");
       } else {
+        console.error("Cart service returned failure:", result);
         NotificationService.error("Failed to add to cart");
       }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      NotificationService.error("Error adding product to cart");
+    } catch (error: any) {
+      console.error("❌ Error adding to cart:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        stack: error?.stack
+      });
+      
+      // More specific error messages
+      if (error?.code === 'unavailable') {
+        NotificationService.error("Cannot connect to server. Please ensure Firebase emulators are running.");
+      } else if (error?.code === 'unauthenticated') {
+        NotificationService.error("Please sign in to add items to cart");
+      } else {
+        NotificationService.error(error?.message || "Error adding product to cart");
+      }
     }
   }
 

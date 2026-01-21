@@ -890,11 +890,31 @@ export class PageCheckout extends LitElement {
     `;
   }
 
-  private _loadCart() {
-    const cartData = localStorage.getItem("cart");
-    if (cartData) {
-      const cart = JSON.parse(cartData);
-      this.cartItems = cart.items || [];
+  private async _loadCart() {
+    try {
+      const cartService = (window as any).cartService;
+      if (cartService) {
+        const result = await cartService.getCart();
+        if (result.success && result.cart.items) {
+          this.cartItems = result.cart.items.map((item: any) => ({
+            productId: item.productId,
+            product: {
+              name: item.name,
+              imageUrl: item.imageUrl,
+            },
+            quantity: item.quantity,
+            price: item.price,
+            selectedShade: item.shade,
+          }));
+        } else {
+          this.cartItems = [];
+        }
+      } else {
+        this.cartItems = [];
+      }
+    } catch (error) {
+      console.error("Error loading cart:", error);
+      this.cartItems = [];
     }
   }
 
@@ -946,8 +966,15 @@ export class PageCheckout extends LitElement {
     orders.push(order);
     localStorage.setItem("orders", JSON.stringify(orders));
 
-    // Clear cart
-    localStorage.removeItem("cart");
+    // Clear cart using cart service
+    try {
+      const cartService = (window as any).cartService;
+      if (cartService) {
+        await cartService.clearCart();
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+    }
 
     // Show success
     this.processing = false;

@@ -4,6 +4,9 @@ import type { Product, ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "./notification-service";
 
+// Access cart service from global window object (set by main app)
+const getCartService = () => (window as any).cartService;
+
 @customElement("itsme-product-card")
 export class ItsmeProductCard extends LitElement {
   static styles = css`
@@ -356,16 +359,39 @@ export class ItsmeProductCard extends LitElement {
     }
   }
 
-  private _checkCartStatus() {
+  private async _checkCartStatus() {
     if (!this.product) return;
+    const cartService = getCartService();
+    if (!cartService) {
+      this.cartQuantity = 0;
+      return;
+    }
     try {
-      const cartData = localStorage.getItem("cart");
-      const cart = cartData ? JSON.parse(cartData) : { items: [] };
-      const existingItem = cart.items.find(
-        (item: any) => item.productId === this.product?.id,
-      );
-      this.cartQuantity = existingItem ? existingItem.quantity : 0;
+      // Use cart service to get cart items
+      const result = await cartService.getCart();
+      if (result.success) {
+        const shades = (this.product as any).shades || [];
+        const selectedShade =
+          shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+
+        const existingItem = result.cart.items.find((item: any) => {
+          const isSameProduct = item.productId === this.product?.id;
+          const isSameShade = selectedShade
+            ? item.shade?.hexCode === selectedShade.hexCode
+            : !item.shade;
+          return isSameProduct && isSameShade;
+        });
+
+        if (existingItem) {
+          this.cartQuantity = existingItem.quantity;
+        } else {
+          this.cartQuantity = 0;
+        }
+      } else {
+        this.cartQuantity = 0;
+      }
     } catch (e) {
+      console.warn("Error reading cart:", e);
       this.cartQuantity = 0;
     }
   }
@@ -378,59 +404,60 @@ export class ItsmeProductCard extends LitElement {
     }
   }
 
-  private _updateCart(quantity: number, showNotification = false) {
+  private async _updateCart(newQuantity: number, showNotification = false) {
     if (!this.product) return;
 
-    if (this.product.stock < quantity) {
+    const cartService = getCartService();
+    if (!cartService) {
+      NotificationService.error("Cart service not available");
+      return;
+    }
+
+    const productStock = (this.product as any).shades?.[0]?.stock || (this.product as any).stock || 0;
+    
+    if (productStock < newQuantity) {
       NotificationService.error("Not enough stock available");
       return;
     }
 
-    const cartData = localStorage.getItem("cart");
-    const cart = cartData ? JSON.parse(cartData) : { items: [] };
-
+    const shades = (this.product as any).shades || [];
     const selectedShade =
-      this.product.shades && this.product.shades.length > 0
-        ? this.product.shades[this.selectedShadeIndex]
-        : null;
+      shades.length > 0 ? shades[this.selectedShadeIndex] : null;
 
-    const existingItemIndex = cart.items.findIndex((item: any) => {
-      const isSameProduct = item.productId === this.product?.id;
-      const isSameShade = selectedShade
-        ? item.selectedShade?.hexCode === selectedShade.hexCode
-        : !item.selectedShade;
-      return isSameProduct && isSameShade;
-    });
-
-    if (quantity > 0) {
-      if (existingItemIndex > -1) {
-        cart.items[existingItemIndex].quantity = quantity;
-      } else {
-        cart.items.push({
-          productId: this.product.id,
-          product: this.product,
-          quantity: quantity,
-          price: (this.product as any).shades?.[0]?.price || (this.product as any).price || 0,
-          selectedShade: selectedShade,
-        });
-      }
-      if (showNotification) {
-        const productName = (this.product as any).productName || (this.product as any).name || "Product";
-        NotificationService.success(`Added ${productName} to cart`);
-      }
-    } else {
-      if (existingItemIndex > -1) {
-        cart.items.splice(existingItemIndex, 1);
+    try {
+      if (newQuantity === 0) {
+        // Remove from cart
+        await cartService.removeFromCart(this.product.id);
         if (showNotification) {
           const productName = (this.product as any).productName || (this.product as any).name || "Product";
           NotificationService.info(`Removed ${productName} from cart`);
         }
+      } else {
+        // Calculate the delta (how much to add or remove)
+        const delta = newQuantity - this.cartQuantity;
+        
+        if (delta > 0) {
+          // Add items
+          await cartService.addToCart(this.product.id, delta, selectedShade);
+          if (showNotification) {
+            const productName = (this.product as any).productName || (this.product as any).name || "Product";
+            NotificationService.success(`Added ${productName} to cart`);
+          }
+        } else if (delta < 0) {
+          // For now, removing requires full removal since we don't have updateQuantity function
+          // We need to remove and re-add with new quantity
+          await cartService.removeFromCart(this.product.id);
+          if (newQuantity > 0) {
+            await cartService.addToCart(this.product.id, newQuantity, selectedShade);
+          }
+        }
       }
+      this.cartQuantity = newQuantity;
+      window.dispatchEvent(new Event("cart-updated"));
+    } catch (error) {
+      console.error("Error updating cart:", error);
+      NotificationService.error("Failed to update cart");
     }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    this.cartQuantity = quantity;
-    window.dispatchEvent(new Event("cart-updated"));
   }
 
   render() {
