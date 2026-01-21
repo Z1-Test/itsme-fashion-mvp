@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { Product } from "@itsme/shared-utils";
+import type { Product, ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "./notification-service";
 
@@ -487,7 +487,7 @@ export class ItsmeProductCard extends LitElement {
             ? html`
                 <div class="shade-row">
                   ${visibleShades.map(
-                    (shade, idx) => html`
+                    (shade: ProductShade, idx: number) => html`
                       <button
                         class="shade-swatch ${this.selectedShadeIndex === idx
                           ? "selected"

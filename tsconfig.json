@@ -19,6 +19,6 @@
       "@packages/*": ["src/packages/*/src"]
     }
   },
-  "include": ["index.ts", "src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  "include": ["index.ts"],
+  "exclude": ["node_modules", "dist", "coverage", "src/**"]
 }

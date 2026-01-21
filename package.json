@@ -16,9 +16,9 @@
     "src/services/wishList"
   ],
   "scripts": {
-    "build": "npm run build:packages && npm run build:services",
+    "build": "npm run build:packages && npm run build:services && npm run build:app",
     "build:packages": "npm run build -w @itsme/shared-utils && npm run build -w @itsme/design-system",
-    "build:services": "tsc",
+    "build:services": "npm run build -w @itsme/service-catalog && npm run build -w @itsme/service-identity && npm run build -w @itsme/service-cart && npm run build -w @itsme/service-payments && npm run build -w @itsme/service-delivery && npm run build -w @itsme/service-wishlist",
     "build:app": "npm run build -w @itsme/app",
     "dev": "npm run dev:app",
     "dev:app": "npm run dev -w @itsme/app",

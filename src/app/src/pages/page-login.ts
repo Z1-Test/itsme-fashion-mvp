@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { authService } from "../services";
 
 @customElement("page-login")
 export class PageLogin extends LitElement {
@@ -209,7 +210,7 @@ export class PageLogin extends LitElement {
     this.error = "";
   }
 
-  private _handleSubmit(e: Event) {
+  private async _handleSubmit(e: Event) {
     e.preventDefault();
 
     if (!this.email || !this.email.includes("@")) {
@@ -222,16 +223,19 @@ export class PageLogin extends LitElement {
       return;
     }
 
-    // Mock login - just store email in localStorage
-    const user = {
-      email: this.email,
-      displayName: this.email.split("@")[0],
-      loginAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem("user", JSON.stringify(user));
-
-    // Redirect to home or products
-    window.location.href = "/products";
+    try {
+      // Use Firebase Auth SDK for login
+      const user = await authService.login(this.email, this.password);
+      console.log("✅ Login successful:", user);
+      
+      // Store user info in localStorage for quick access
+      localStorage.setItem("user", JSON.stringify(user));
+      
+      // Redirect to products
+      window.location.href = "/products";
+    } catch (error: any) {
+      this.error = error.message || "Login failed. Please try again.";
+      console.error("Login error:", error);
+    }
   }
 }

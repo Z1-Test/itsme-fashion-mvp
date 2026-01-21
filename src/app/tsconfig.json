@@ -11,9 +11,21 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
     "resolveJsonModule": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@itsme/shared-utils": ["../packages/shared-utils/dist/index.d.ts"],
+      "@itsme/design-system": ["../packages/design-system/dist/index.d.ts"],
+      "@itsme/service-catalog": ["../services/catalog/lib/index.d.ts"],
+      "@itsme/service-identity": ["../services/identity/lib/index.d.ts"],
+      "@itsme/service-cart": ["../services/cart/lib/index.d.ts"],
+      "@itsme/service-payments": ["../services/payments/lib/index.d.ts"],
+      "@itsme/service-delivery": ["../services/delivery/lib/index.d.ts"],
+      "@itsme/service-wishlist": ["../services/wishList/lib/index.d.ts"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
