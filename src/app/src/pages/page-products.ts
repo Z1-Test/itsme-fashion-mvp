@@ -1,7 +1,11 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import type { Product } from "@itsme/shared-utils";
-import { MOCK_PRODUCTS } from "../mock-products";
+import { 
+  getAllProducts, 
+  getProductsByCategory, 
+  type Product 
+} from "../services/catalog";
+
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
 
 @customElement("page-products")
@@ -111,6 +115,7 @@ export class PageProducts extends LitElement {
   @state() private products: Product[] = [];
   @state() private loading = true;
   @state() private error = "";
+  @state() private selectedCategory = "all";
 
   connectedCallback() {
     super.connectedCallback();
@@ -130,10 +135,34 @@ export class PageProducts extends LitElement {
       <h1>Our Products</h1>
 
       <div class="filters">
-        <itsme-button variant="outline" size="small">All</itsme-button>
-        <itsme-button variant="outline" size="small">Vegan</itsme-button>
-        <itsme-button variant="outline" size="small">Cruelty-Free</itsme-button>
-        <itsme-button variant="outline" size="small">Organic</itsme-button>
+        <itsme-button 
+          variant="${this.selectedCategory === "all" ? "primary" : "outline"}" 
+          size="small"
+          @click=${() => this._filterByCategory("all")}
+        >
+          All
+        </itsme-button>
+        <itsme-button 
+          variant="${this.selectedCategory === "eyes" ? "primary" : "outline"}" 
+          size="small"
+          @click=${() => this._filterByCategory("eyes")}
+        >
+          Eyes
+        </itsme-button>
+        <itsme-button 
+          variant="${this.selectedCategory === "lips" ? "primary" : "outline"}" 
+          size="small"
+          @click=${() => this._filterByCategory("lips")}
+        >
+          Lips
+        </itsme-button>
+        <itsme-button 
+          variant="${this.selectedCategory === "face" ? "primary" : "outline"}" 
+          size="small"
+          @click=${() => this._filterByCategory("face")}
+        >
+          Face
+        </itsme-button>
       </div>
 
       <div class="products-grid">
@@ -163,9 +192,22 @@ export class PageProducts extends LitElement {
     this.loading = true;
     this.error = "";
 
-    // Load products directly from CSV data
-    this.products = MOCK_PRODUCTS;
+    try {
+      if (this.selectedCategory === "all") {
+        this.products = await getAllProducts();
+      } else {
+        this.products = await getProductsByCategory(this.selectedCategory);
+      }
+    } catch (err: any) {
+      this.error = err.message || "Failed to load products";
+      console.error("Error loading products:", err);
+    } finally {
+      this.loading = false;
+    }
+  }
 
-    this.loading = false;
+  private async _filterByCategory(category: string) {
+    this.selectedCategory = category;
+    await this._loadProducts();
   }
 }

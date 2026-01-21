@@ -410,18 +410,20 @@ export class ItsmeProductCard extends LitElement {
           productId: this.product.id,
           product: this.product,
           quantity: quantity,
-          price: this.product.price,
+          price: (this.product as any).shades?.[0]?.price || (this.product as any).price || 0,
           selectedShade: selectedShade,
         });
       }
       if (showNotification) {
-        NotificationService.success(`Added ${this.product.name} to cart`);
+        const productName = (this.product as any).productName || (this.product as any).name || "Product";
+        NotificationService.success(`Added ${productName} to cart`);
       }
     } else {
       if (existingItemIndex > -1) {
         cart.items.splice(existingItemIndex, 1);
         if (showNotification) {
-          NotificationService.info(`Removed ${this.product.name} from cart`);
+          const productName = (this.product as any).productName || (this.product as any).name || "Product";
+          NotificationService.info(`Removed ${productName} from cart`);
         }
       }
     }
@@ -434,8 +436,15 @@ export class ItsmeProductCard extends LitElement {
   render() {
     if (!this.product) return html``;
 
-    const { name, brand, price, imageUrl, ethicalMarkers, stock, shades } =
-      this.product;
+    // Map Firestore product fields to expected format
+    const name = (this.product as any).productName || this.product.name || "Unknown Product";
+    const brand = (this.product as any).brand || "It's Me";
+    const price = (this.product as any).shades?.[0]?.price || (this.product as any).price || 0;
+    const imageUrl = (this.product as any).imageUrl || `https://placehold.co/400x400?text=${encodeURIComponent(name)}`;
+    const ethicalMarkers = (this.product as any).ethicalMarkers || [];
+    const stock = (this.product as any).shades?.[0]?.stock || (this.product as any).stock || 0;
+    const shades = (this.product as any).shades || [];
+    
     const isOutOfStock = stock === 0;
     const visibleShades = (shades || []).slice(0, 4);
     const remainingShades = Math.max(
@@ -560,7 +569,8 @@ export class ItsmeProductCard extends LitElement {
   private _incrementQuantity(e: Event) {
     e.stopPropagation();
     e.preventDefault();
-    if (this.cartQuantity < this.product.stock) {
+    const productStock = (this.product as any).shades?.[0]?.stock || (this.product as any).stock || 0;
+    if (this.cartQuantity < productStock) {
       this._updateCart(this.cartQuantity + 1);
     } else {
       NotificationService.error("Max stock reached");
@@ -615,16 +625,17 @@ export class ItsmeProductCard extends LitElement {
 
     // Toggle wishlist status
     const index = wishlistIds.indexOf(this.product.id);
+    const productName = (this.product as any).productName || (this.product as any).name || "Product";
     if (index > -1) {
       // Remove from wishlist
       wishlistIds.splice(index, 1);
       this.isInWishlist = false;
-      NotificationService.info(`Removed ${this.product.name} from wishlist`);
+      NotificationService.info(`Removed ${productName} from wishlist`);
     } else {
       // Add to wishlist
       wishlistIds.push(this.product.id);
       this.isInWishlist = true;
-      NotificationService.success(`Added ${this.product.name} to wishlist`);
+      NotificationService.success(`Added ${productName} to wishlist`);
     }
 
     // Save wishlist
