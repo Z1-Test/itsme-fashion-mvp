@@ -8,6 +8,7 @@ import {
 
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
 import { wishlist } from "../services";
+import { initRemoteConfig, getVisibleCategories } from "../services/remoteconfig";
 
 @customElement("page-products")
 export class PageProducts extends LitElement {
@@ -118,9 +119,18 @@ export class PageProducts extends LitElement {
   @state() private error = "";
   @state() private selectedCategory = "all";
   @state() private wishlistIds: string[] = [];
+  @state() private visibleCategories: string[] = [];
 
-  connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
+
+    await initRemoteConfig();
+    this.visibleCategories = getVisibleCategories();
+
+    // Keep default selectedCategory = "all" so we always
+    // load all products initially, even if the All button
+    // is hidden when the flag is off.
+
     this._loadProducts();
     this._loadWishlist();
   }
@@ -138,34 +148,42 @@ export class PageProducts extends LitElement {
       <h1>Our Products</h1>
 
       <div class="filters">
-        <itsme-button 
-          variant="${this.selectedCategory === "all" ? "primary" : "outline"}" 
-          size="small"
-          @click=${() => this._filterByCategory("all")}
-        >
-          All
-        </itsme-button>
-        <itsme-button 
-          variant="${this.selectedCategory === "eyes" ? "primary" : "outline"}" 
-          size="small"
-          @click=${() => this._filterByCategory("eyes")}
-        >
-          Eyes
-        </itsme-button>
-        <itsme-button 
-          variant="${this.selectedCategory === "lips" ? "primary" : "outline"}" 
-          size="small"
-          @click=${() => this._filterByCategory("lips")}
-        >
-          Lips
-        </itsme-button>
-        <itsme-button 
-          variant="${this.selectedCategory === "face" ? "primary" : "outline"}" 
-          size="small"
-          @click=${() => this._filterByCategory("face")}
-        >
-          Face
-        </itsme-button>
+        ${this.visibleCategories.includes("all") ? html`
+          <itsme-button 
+            variant="${this.selectedCategory === "all" ? "primary" : "outline"}" 
+            size="small"
+            @click=${() => this._filterByCategory("all")}
+          >
+            All
+          </itsme-button>
+        ` : ""}
+        ${this.visibleCategories.includes("eyes") ? html`
+          <itsme-button 
+            variant="${this.selectedCategory === "eyes" ? "primary" : "outline"}" 
+            size="small"
+            @click=${() => this._filterByCategory("eyes")}
+          >
+            Eyes
+          </itsme-button>
+        ` : ""}
+        ${this.visibleCategories.includes("lips") ? html`
+          <itsme-button 
+            variant="${this.selectedCategory === "lips" ? "primary" : "outline"}" 
+            size="small"
+            @click=${() => this._filterByCategory("lips")}
+          >
+            Lips
+          </itsme-button>
+        ` : ""}
+        ${this.visibleCategories.includes("face") ? html`
+          <itsme-button 
+            variant="${this.selectedCategory === "face" ? "primary" : "outline"}" 
+            size="small"
+            @click=${() => this._filterByCategory("face")}
+          >
+            Face
+          </itsme-button>
+        ` : ""}
       </div>
 
       <div class="products-grid">
