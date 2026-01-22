@@ -6,6 +6,7 @@ import {
   User
 } from "firebase/auth";
 import { httpsCallable, Functions } from "firebase/functions";
+import { RemoteConfig, getValue } from "firebase/remote-config";
 
 export interface RegisterData {
   email: string;
@@ -22,12 +23,14 @@ export interface AuthUser {
 export class AuthService {
   private auth: Auth;
   private functions: Functions;
+  private remoteConfig: RemoteConfig;
   private currentUser: AuthUser | null = null;
   private authInitialized = false;
 
-  constructor(auth: Auth, functions: Functions) {
+  constructor(auth: Auth, functions: Functions, remoteConfig: RemoteConfig) {
     this.auth = auth;
     this.functions = functions;
+    this.remoteConfig = remoteConfig;
     this.setupAuthStateListener();
   }
 
@@ -153,5 +156,18 @@ export class AuthService {
    */
   getAuth(): Auth {
     return this.auth;
+  }
+
+  /**
+   * Check if authentication feature is enabled via Remote Config
+   */
+  isAuthenticationEnabled(): boolean {
+    try {
+      const isEnabled = getValue(this.remoteConfig, "feature_fe_38_fl_39_user_authentication_enabled").asBoolean();
+      return isEnabled;
+    } catch (error) {
+      // Default to true if remote config is not available
+      return true;
+    }
   }
 }

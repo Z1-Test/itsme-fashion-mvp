@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { authService } from "../services";
+import { isLoginRegistrationEnabled } from "../services/remote-config";
 
 @customElement("page-login")
 export class PageLogin extends LitElement {
@@ -159,6 +160,18 @@ export class PageLogin extends LitElement {
   @state() private error = "";
 
   render() {
+    // Check if login/registration is enabled via Remote Config
+    if (!isLoginRegistrationEnabled()) {
+      return html`
+        <div class="login-card">
+          <h1>Service Unavailable</h1>
+          <div class="info">
+            <p>Login and registration services are currently unavailable. Please try again later.</p>
+          </div>
+        </div>
+      `;
+    }
+
     return html`
       <div class="login-card">
         <h1>Login</h1>

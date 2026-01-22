@@ -6,13 +6,12 @@ import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "demo-api-key",
-  authDomain: "localhost",
+  apiKey: "AIzaSyCcp1rSTXeqrpETPv1ifb52iEkUhCsL49A",
+  authDomain: "dev-ecom-test-010126.firebaseapp.com",
   projectId: "dev-ecom-test-010126",
-  storageBucket: "dev-ecom-test-010126.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "demo-app-id",
-  databaseId: "dev-db",
+  storageBucket: "dev-ecom-test-010126.firebasestorage.app",
+  messagingSenderId: "717616470424",
+  appId: "1:717616470424:web:3a926d60fcc4acc920f3ed"
 };
 
 // Initialize Firebase
@@ -23,6 +22,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
+export { app };
 
 // Connect to emulators in development
 connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
