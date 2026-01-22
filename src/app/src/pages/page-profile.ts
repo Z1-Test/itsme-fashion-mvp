@@ -909,7 +909,7 @@ export class PageProfile extends LitElement {
         total: order.total,
         status: order.orderStatus,
         items: order.items.map(item => ({
-          productName: item.product?.name || item.productId,
+          productName: item.product?.productName || item.product?.name || item.productId,
           quantity: item.quantity,
           price: item.price * item.quantity,
           image: item.product?.imageUrl || item.product?.image,
@@ -969,7 +969,7 @@ export class PageProfile extends LitElement {
         total: order.total,
         status: order.orderStatus,
         items: order.items.map(item => ({
-          productName: item.product?.name || item.productId,
+          productName: item.product?.productName || item.product?.name || item.productId,
           quantity: item.quantity,
           price: item.price * item.quantity,
           image: item.product?.imageUrl || item.product?.image,
