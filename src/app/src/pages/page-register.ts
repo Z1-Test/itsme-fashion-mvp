@@ -285,8 +285,8 @@ export class PageRegister extends LitElement {
       // Wait a moment for auth state to propagate
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Redirect to products
-      window.location.href = "/products";
+      // Redirect to login
+      window.location.href = "/login";
     } catch (error: any) {
       this.error = error.message || "Registration failed. Please try again.";
       NotificationService.error(this.error);

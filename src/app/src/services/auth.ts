@@ -23,6 +23,7 @@ export class AuthService {
   private auth: Auth;
   private functions: Functions;
   private currentUser: AuthUser | null = null;
+  private authInitialized = false;
 
   constructor(auth: Auth, functions: Functions) {
     this.auth = auth;
@@ -47,7 +48,6 @@ export class AuthService {
       this.currentUser = authUser;
       return authUser;
     } catch (error: any) {
-      console.error("Login failed:", error);
       throw new Error(error.message || "Login failed");
     }
   }
@@ -75,7 +75,6 @@ export class AuthService {
       this.currentUser = authUser;
       return authUser;
     } catch (error: any) {
-      console.error("Registration failed:", error);
       throw new Error(error.message || "Registration failed");
     }
   }
@@ -88,7 +87,6 @@ export class AuthService {
       await firebaseSignOut(this.auth);
       this.currentUser = null;
     } catch (error: any) {
-      console.error("Logout failed:", error);
       throw new Error(error.message || "Logout failed");
     }
   }
@@ -108,6 +106,30 @@ export class AuthService {
   }
 
   /**
+   * Wait for auth to be initialized (useful after page refresh)
+   */
+  async waitForAuthInitialized(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.authInitialized) {
+        resolve();
+        return;
+      }
+      
+      // Check every 50ms until auth is initialized (max 5 seconds)
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        if (this.authInitialized) {
+          clearInterval(interval);
+          resolve();
+        } else if (Date.now() - startTime > 5000) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 50);
+    });
+  }
+
+  /**
    * Setup auth state listener
    */
   private setupAuthStateListener(): void {
@@ -121,6 +143,8 @@ export class AuthService {
       } else {
         this.currentUser = null;
       }
+      // Mark auth as initialized after first check
+      this.authInitialized = true;
     });
   }
 

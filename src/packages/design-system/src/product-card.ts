@@ -356,7 +356,7 @@ export class ItsmeProductCard extends LitElement {
         this.isInWishlist = wishlistIds.includes(this.product.id);
       }
     } catch (e) {
-      console.warn("Error reading wishlist:", e);
+      NotificationService.error("Error reading wishlist");
     }
   }
 
@@ -401,7 +401,6 @@ export class ItsmeProductCard extends LitElement {
     const { product, isInWishlist } = e.detail;
     // If this card represents the same product that was toggled elsewhere
     if (this.product && product && this.product.id === product.id) {
-      console.log(`💚 GLOBAL EVENT - Updating card for product ${this.product.id} to isInWishlist: ${isInWishlist}`);
       this.isInWishlist = isInWishlist;
       this.requestUpdate();
     }
@@ -481,9 +480,6 @@ export class ItsmeProductCard extends LitElement {
       (shades?.length || 0) - visibleShades.length,
       0,
     );
-
-    // Debug log
-    console.log(`💚 RENDER - Product: ${this.product.id}, isInWishlist: ${this.isInWishlist}`);
 
     return html`
       <div class="card">
@@ -645,24 +641,19 @@ export class ItsmeProductCard extends LitElement {
     e.stopPropagation();
     e.preventDefault();
 
-    console.log("💚 PRODUCT CARD WISHLIST CLICKED!");
-
     if (!this.product) {
-      console.log("💚 No product");
       return;
     }
 
     if (!this.isLoggedIn) {
-      console.log("💚 Not logged in, redirecting");
       window.location.href = "/login";
       return;
     }
 
     const wishlistService = getWishlistService();
-    console.log("💚 Wishlist service:", wishlistService);
 
     if (!wishlistService) {
-      console.error("💚 Wishlist service not available, falling back to localStorage");
+      NotificationService.error("Wishlist service not available");
       // Fallback to localStorage
       const wishlistData = localStorage.getItem("wishlist");
       const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
@@ -692,17 +683,13 @@ export class ItsmeProductCard extends LitElement {
 
     // Use wishlist service (cloud functions)
     const productName = (this.product as any).productName || (this.product as any).name || "Product";
-    console.log("💚 Toggling wishlist for:", productName, "Current state:", this.isInWishlist);
 
     try {
       if (this.isInWishlist) {
-        console.log("💚 Removing from wishlist via service");
         const result = await wishlistService.removeFromWishlist(this.product.id);
-        console.log("💚 Remove result:", result);
         
         if (result.success) {
           this.isInWishlist = false;
-          console.log("💚 State updated, isInWishlist:", this.isInWishlist);
           NotificationService.info(`Removed ${productName} from wishlist`);
           this.dispatchEvent(
             new CustomEvent("itsme-wishlist-toggle", {
@@ -715,13 +702,10 @@ export class ItsmeProductCard extends LitElement {
           NotificationService.error(result.message || "Failed to remove from wishlist");
         }
       } else {
-        console.log("💚 Adding to wishlist via service");
         const result = await wishlistService.addToWishlist(this.product.id);
-        console.log("💚 Add result:", result);
         
         if (result.success) {
           this.isInWishlist = true;
-          console.log("💚 State updated, isInWishlist:", this.isInWishlist);
           NotificationService.success(`Added ${productName} to wishlist`);
           this.dispatchEvent(
             new CustomEvent("itsme-wishlist-toggle", {
@@ -735,7 +719,6 @@ export class ItsmeProductCard extends LitElement {
         }
       }
     } catch (error) {
-      console.error("💚 Error toggling wishlist:", error);
       NotificationService.error("Failed to update wishlist");
     }
   }

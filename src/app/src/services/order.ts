@@ -88,7 +88,6 @@ export class OrderService {
         order: data.order,
       };
     } catch (error: any) {
-      console.error("Create order failed:", error);
       throw new Error(error.message || "Failed to create order");
     }
   }
@@ -118,7 +117,6 @@ export class OrderService {
         orderId: data.orderId,
       };
     } catch (error: any) {
-      console.error("Update order status failed:", error);
       throw new Error(error.message || "Failed to update order status");
     }
   }
@@ -134,7 +132,6 @@ export class OrderService {
       
       return data.data || [];
     } catch (error: any) {
-      console.error("Get user orders failed:", error);
       throw new Error(error.message || "Failed to fetch orders");
     }
   }
@@ -150,7 +147,6 @@ export class OrderService {
       
       return data.order || null;
     } catch (error: any) {
-      console.error("Get order failed:", error);
       throw new Error(error.message || "Failed to fetch order");
     }
   }

@@ -361,7 +361,6 @@ export class PageProductDetail
 
   onBeforeEnter(location: RouterLocation) {
     const id = location.params.id as string;
-    console.log("🎯 PAGE LOADING - Product ID:", id);
     this._loadProduct(id);
   }
 
@@ -429,12 +428,7 @@ export class PageProductDetail
   }
 
   private async _toggleWishlist() {
-    console.log("🔥 WISHLIST BUTTON CLICKED!");
-    console.log("🔥 Wishlist service:", wishlist);
-    console.log("🔥 Product:", this.product);
-    
     if (!this.product) {
-      console.log("❌ No product found");
       return;
     }
 
@@ -648,8 +642,6 @@ export class PageProductDetail
   }
 
   render() {
-    console.log("🎨 RENDER CALLED - Product:", this.product?.id, "Loading:", this.loading);
-    
     if (this.loading) {
       return html`<div>Loading...</div>`;
     }
@@ -664,11 +656,9 @@ export class PageProductDetail
     }
 
     // Map Firestore product to expected format
-    console.log("Product data:", this.product);
     const productName = this.product.productName || "Unknown Product";
     const productPrice = this.product.shades?.[0]?.price || 0;
     const productStock = this.product.shades?.[0]?.stock || 0;
-    console.log("Mapped values:", { productName, productPrice, productStock });
     const shadesList = this.product.shades || [];
     const normalizedSelectedIndex =
       shadesList.length && this.selectedShadeIndex < shadesList.length

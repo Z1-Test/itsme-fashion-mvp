@@ -21,7 +21,7 @@ import { cart, wishlist } from "./services";
 (window as any).cartService = cart;
 (window as any).wishlistService = wishlist;
 
-console.log("🌐 Global services exposed:", { cart, wishlist });
+
 
 // Mount app
 const app = document.getElementById("app");

@@ -854,11 +854,11 @@ export class PageProfile extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    // Add a small delay to ensure auth state is available
-    setTimeout(() => {
+    // Wait for auth to be initialized, then load data
+    authService.waitForAuthInitialized().then(() => {
       this._loadUserAndOrders();
       this._loadAddresses();
-    }, 100);
+    });
   }
 
   private async _loadUserAndOrders() {

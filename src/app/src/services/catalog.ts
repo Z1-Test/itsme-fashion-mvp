@@ -61,7 +61,6 @@ export async function getAllProducts(): Promise<Product[]> {
     
     throw new Error(result.data.message || "Failed to fetch products");
   } catch (error) {
-    console.error("Error fetching all products:", error);
     throw error;
   }
 }
@@ -85,7 +84,6 @@ export async function getProductsByCategory(category: string): Promise<Product[]
     
     throw new Error(result.data.message || "Failed to fetch products");
   } catch (error) {
-    console.error(`Error fetching products for category ${category}:`, error);
     throw error;
   }
 }
@@ -109,7 +107,6 @@ export async function getProductById(productId: string): Promise<Product | null>
     
     return null;
   } catch (error) {
-    console.error(`Error fetching product with ID ${productId}:`, error);
     throw error;
   }
 }
@@ -131,7 +128,6 @@ export async function searchProducts(searchTerm: string): Promise<Product[]> {
       product.productName.toLowerCase().includes(term)
     );
   } catch (error) {
-    console.error("Error searching products:", error);
     throw error;
   }
 }

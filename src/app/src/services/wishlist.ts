@@ -1,6 +1,5 @@
 import { Functions, httpsCallable } from "firebase/functions";
-
-console.log("💜 WISHLIST SERVICE FILE LOADED");
+import { NotificationService } from "@itsme/design-system";
 
 interface WishlistItem {
   productId: string;
@@ -26,9 +25,8 @@ function getAnonymousUserId(): string {
     // Generate a unique ID: anonymous_{timestamp}_{random}
     userId = `anonymous_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     localStorage.setItem(STORAGE_KEY, userId);
-    console.log("💜 Generated new anonymous user ID:", userId);
   } else {
-    console.log("💜 Using existing anonymous user ID:", userId);
+    // Using existing userId
   }
   
   return userId;
@@ -41,7 +39,6 @@ export class WishlistService {
   private functions: Functions;
 
   constructor(functions: Functions) {
-    console.log("💜 WishlistService constructor called with functions:", functions);
     this.functions = functions;
   }
 
@@ -51,29 +48,23 @@ export class WishlistService {
    * @returns Promise with the operation result
    */
   async addToWishlist(productId: string): Promise<{ success: boolean; message: string }> {
-    console.log("💜 addToWishlist called with productId:", productId);
-    console.log("💜 Functions instance:", this.functions);
-    
     try {
-      console.log("💜 Creating httpsCallable for addToWishList");
       const addToWishListFn = httpsCallable<
         { productId: string; anonymousUserId?: string },
         WishlistResponse
       >(this.functions, "addToWishList");
 
-      console.log("💜 Calling cloud function addToWishList");
       const result = await addToWishListFn({ 
         productId,
         anonymousUserId: getAnonymousUserId()
       });
       
-      console.log("💜 Cloud function response:", result);
       return {
         success: result.data.success,
         message: result.data.message || "Product added to wishlist",
       };
     } catch (error) {
-      console.error("💜 ❌ Error adding to wishlist:", error);
+      NotificationService.error("Failed to add product to wishlist");
       throw error;
     }
   }
@@ -84,27 +75,23 @@ export class WishlistService {
    * @returns Promise with the operation result
    */
   async removeFromWishlist(productId: string): Promise<{ success: boolean; message: string }> {
-    console.log("💜 removeFromWishlist called with productId:", productId);
-    
     try {
       const removeFromWishListFn = httpsCallable<
         { productId: string; anonymousUserId?: string },
         WishlistResponse
       >(this.functions, "removeFromWishList");
 
-      console.log("💜 Calling cloud function removeFromWishList");
       const result = await removeFromWishListFn({ 
         productId,
         anonymousUserId: getAnonymousUserId()
       });
       
-      console.log("💜 Cloud function response:", result);
       return {
         success: result.data.success,
         message: result.data.message || "Product removed from wishlist",
       };
     } catch (error) {
-      console.error("Error removing from wishlist:", error);
+      NotificationService.error("Failed to remove product from wishlist");
       throw error;
     }
   }
@@ -128,7 +115,7 @@ export class WishlistService {
       }
       return [];
     } catch (error) {
-      console.error("Error getting wishlist:", error);
+      NotificationService.error("Failed to load wishlist");
       return [];
     }
   }

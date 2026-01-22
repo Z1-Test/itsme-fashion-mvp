@@ -226,7 +226,7 @@ export class PageLogin extends LitElement {
     try {
       // Use Firebase Auth SDK for login
       const user = await authService.login(this.email, this.password);
-      console.log("✅ Login successful:", user);
+
       
       // Store user info in localStorage for quick access
       localStorage.setItem("user", JSON.stringify(user));
@@ -235,7 +235,7 @@ export class PageLogin extends LitElement {
       window.location.href = "/products";
     } catch (error: any) {
       this.error = error.message || "Login failed. Please try again.";
-      console.error("Login error:", error);
+
     }
   }
 }
