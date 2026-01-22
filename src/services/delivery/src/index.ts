@@ -9,10 +9,8 @@ import {
   OrderStatus,
 } from "./types.js";
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+
+admin.initializeApp();
 
 // Get Firebase Admin SDK instances (initialized above)
 const db = admin.firestore();

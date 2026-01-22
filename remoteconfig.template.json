@@ -50,5 +50,10 @@
       "email": "admin@itsme.fashion"
     },
     "description": "Remote Config with sale banner and category filter"
+    "feature_fe_38_fl_39_user_authentication_enabled": {
+      "description": "Enable/disable user authentication feature",
+      "valueType": "BOOLEAN",
+      "defaultValue": "true"
+    }
   }
 }
