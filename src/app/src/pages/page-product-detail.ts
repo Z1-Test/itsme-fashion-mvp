@@ -463,18 +463,32 @@ export class PageProductDetail
         console.log("🗑️ Removing from wishlist:", this.product.id);
         const result = await wishlist.removeFromWishlist(this.product.id);
         console.log("🗑️ Remove result:", result);
-        this.isInWishlist = false;
-        NotificationService.success(
-          `Removed ${this.product.productName} from wishlist`
-        );
+        
+        // Check if the operation was successful
+        if (result.success) {
+          this.isInWishlist = false;
+          NotificationService.success(
+            `Removed ${this.product.productName} from wishlist`
+          );
+        } else {
+          NotificationService.error(result.message || "Failed to remove from wishlist");
+          return;
+        }
       } else {
         console.log("➕ Adding to wishlist:", this.product.id);
         const result = await wishlist.addToWishlist(this.product.id);
         console.log("➕ Add result:", result);
-        this.isInWishlist = true;
-        NotificationService.success(
-          `Added ${this.product.productName} to wishlist`
-        );
+        
+        // Check if the operation was successful
+        if (result.success) {
+          this.isInWishlist = true;
+          NotificationService.success(
+            `Added ${this.product.productName} to wishlist`
+          );
+        } else {
+          NotificationService.error(result.message || "Failed to add to wishlist");
+          return;
+        }
       }
 
       console.log("✅ Wishlist updated successfully");
