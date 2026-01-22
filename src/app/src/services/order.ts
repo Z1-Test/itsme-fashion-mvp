@@ -5,6 +5,12 @@ export interface CartItem {
   product: any;
   quantity: number;
   price: number;
+  selectedShade?: {
+    hexCode: string;
+    shadeName: string;
+    stock?: number;
+    price?: number;
+  };
 }
 
 export interface Address {

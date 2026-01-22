@@ -10,15 +10,11 @@ import {
   OrderStatus,
 } from "./types.js";
 
-// Initialize Firebase Admin SDK (ensure default app exists)
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+admin.initializeApp();
 
-const db = getFirestore();
+// Get Firebase Admin SDK instances (initialized above)
+const db = admin.firestore();
 
 // Re-export types
 export interface OrderItem {

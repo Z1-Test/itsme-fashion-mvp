@@ -38,6 +38,8 @@ interface OrderItem {
   quantity: number;
   price: number;
   image?: string;
+  shadeName?: string;
+  shadeColor?: string;
 }
 
 @customElement("page-profile")
@@ -887,11 +889,13 @@ export class PageProfile extends LitElement {
         orderDate: new Date(order.createdAt).toLocaleDateString(),
         total: order.total,
         status: order.orderStatus,
-        items: order.items.map(item => ({
+        items: order.items.map((item: any) => ({
           productName: item.product?.productName || item.product?.name || item.productId,
           quantity: item.quantity,
           price: item.price * item.quantity,
           image: item.product?.imageUrl || item.product?.image,
+          shadeName: item.selectedShade?.shadeName || item.shade?.shadeName,
+          shadeColor: item.selectedShade?.hexCode || item.shade?.hexCode,
         })),
         shippingAddress: order.shippingAddress,
       }));
@@ -1236,6 +1240,12 @@ export class PageProfile extends LitElement {
                                         <div class="item-name">
                                           ${item.productName}
                                         </div>
+                                        ${item.shadeName ? html`
+                                          <div class="item-shade" style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                            <span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background-color: ${item.shadeColor || '#ccc'}; border: 1px solid #ddd;"></span>
+                                            <span style="font-size: 0.85rem; color: #666;">${item.shadeName}</span>
+                                          </div>
+                                        ` : html``}
                                         <div class="item-sku">
                                           SKU: ITEM-001
                                         </div>

@@ -230,31 +230,17 @@ export class PageProducts extends LitElement {
     e.preventDefault();
     e.stopPropagation();
     
-    const { product, isWishlisted } = e.detail;
+    const { product, isInWishlist } = e.detail;
 
-    try {
-      if (isWishlisted) {
-        const result = await wishlist.removeFromWishlist(product.id);
-        if (result.success) {
-          NotificationService.success(`Removed ${product.name} from wishlist`);
-          // Update local wishlist state
-          this.wishlistIds = this.wishlistIds.filter(id => id !== product.id);
-        } else {
-          NotificationService.error(result.message || "Failed to remove from wishlist");
-        }
-      } else {
-        const result = await wishlist.addToWishlist(product.id);
-        if (result.success) {
-          NotificationService.success(`Added ${product.name} to wishlist`);
-          // Update local wishlist state
-          this.wishlistIds = [...this.wishlistIds, product.id];
-        } else {
-          NotificationService.error(result.message || "Failed to add to wishlist");
-        }
+    // Only update local state - the product-card already made the API call
+    if (isInWishlist) {
+      // Product was added to wishlist
+      if (!this.wishlistIds.includes(product.id)) {
+        this.wishlistIds = [...this.wishlistIds, product.id];
       }
-    } catch (error) {
-      console.error("Error toggling wishlist:", error);
-      NotificationService.error("Failed to update wishlist");
+    } else {
+      // Product was removed from wishlist
+      this.wishlistIds = this.wishlistIds.filter(id => id !== product.id);
     }
   }
 }

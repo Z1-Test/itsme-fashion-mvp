@@ -243,6 +243,36 @@ export class PageCart extends LitElement {
       cursor: not-allowed;
     }
 
+    .clear-cart-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: transparent;
+      color: #dc2626;
+      border: 1px solid #dc2626;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .clear-cart-btn:hover {
+      background: #dc2626;
+      color: white;
+    }
+
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .cart-header h1 {
+      margin: 0;
+    }
+
     @media (max-width: 768px) {
       .cart-item {
         grid-template-columns: 70px 1fr auto;
@@ -550,6 +580,9 @@ export class PageCart extends LitElement {
           <button class="checkout-btn" @click=${this._checkout}>
             Proceed to Checkout
           </button>
+          <button class="clear-cart-btn" @click=${this._clearCart}>
+            Clear Cart
+          </button>
         </div>
       </div>
     `;
@@ -670,6 +703,23 @@ export class PageCart extends LitElement {
   }
 
   // _saveCart removed - using cloud functions instead
+
+  private async _clearCart() {
+    if (this.cartItems.length === 0) {
+      NotificationService.info("Cart is already empty");
+      return;
+    }
+
+    try {
+      await cartServiceInstance.clearCart();
+      this.cartItems = [];
+      NotificationService.success("Cart cleared successfully");
+      window.dispatchEvent(new Event("cart-updated"));
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      NotificationService.error("Error clearing cart");
+    }
+  }
 
   private _checkout() {
     window.location.href = "/checkout";

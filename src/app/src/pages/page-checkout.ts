@@ -597,6 +597,9 @@ export class PageCheckout extends LitElement {
 
   private async _loadSavedAddress() {
     try {
+      // Wait for auth to be initialized (important for page refresh)
+      await authService.waitForAuthInitialized();
+      
       const user = authService.getCurrentUser();
       if (!user || !user.uid) return;
 
@@ -611,6 +614,7 @@ export class PageCheckout extends LitElement {
           zip: address.zip,
           phone: address.phone,
         };
+        this.requestUpdate();
       }
     } catch (error) {
       // Silently handle error - address will remain null until user enters one

@@ -32,6 +32,18 @@ export interface CartItem {
     image?: string;
   };
   shadeIndex?: number;
+  selectedShade?: {
+    hexCode: string;
+    shadeName: string;
+    stock?: number;
+    price?: number;
+  };
+  shade?: {
+    hexCode: string;
+    shadeName: string;
+    stock?: number;
+    price?: number;
+  };
 }
 
 export interface Order {
