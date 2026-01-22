@@ -41,7 +41,6 @@ export class AddressService {
         ...data.address,
       };
     } catch (error: any) {
-      console.error("Save address failed:", error);
       throw new Error(error.message || "Failed to save address");
     }
   }
@@ -57,7 +56,6 @@ export class AddressService {
       const data = result.data as any;
       return data.addresses || [];
     } catch (error: any) {
-      console.error("Get addresses failed:", error);
       throw new Error(error.message || "Failed to fetch addresses");
     }
   }
@@ -90,7 +88,6 @@ export class AddressService {
         ...data.address,
       };
     } catch (error: any) {
-      console.error("Update address failed:", error);
       throw new Error(error.message || "Failed to update address");
     }
   }
@@ -106,7 +103,6 @@ export class AddressService {
         addressId,
       });
     } catch (error: any) {
-      console.error("Delete address failed:", error);
       throw new Error(error.message || "Failed to delete address");
     }
   }

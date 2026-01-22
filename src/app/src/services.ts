@@ -4,7 +4,7 @@
 // import { CartService } from "@itsme/service-cart";
 // import { PaymentService } from "@itsme/service-payments";
 // import { DeliveryService } from "@itsme/service-delivery";
-import { auth, functions } from "./firebase";
+import { auth, functions, remoteConfig } from "./firebase";
 import { AuthService } from "./services/auth";
 import { CartService } from "./services/cart";
 import { WishlistService } from "./services/wishlist";
@@ -13,7 +13,7 @@ import { OrderService } from "./services/order";
 import { NotificationService } from "@itsme/design-system";
 
 // Initialize Auth Service
-export const authService = new AuthService(auth, functions);
+export const authService = new AuthService(auth, functions, remoteConfig);
 
 // Initialize Cart Service
 export const cartServiceInstance = new CartService(functions);

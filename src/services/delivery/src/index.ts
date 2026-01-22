@@ -1,7 +1,7 @@
 import { onCall } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
-import { getFirestore } from "firebase-admin/firestore";
+import admin from "firebase-admin";
 import {
   Order,
   CreateOrderRequest,
@@ -9,10 +9,13 @@ import {
   OrderStatus,
 } from "./types.js";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+// Initialize Firebase Admin SDK if not already initialized
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
-const db = getFirestore();
+// Get Firebase Admin SDK instances (initialized above)
+const db = admin.firestore();
 
 // Re-export types
 export interface OrderItem {
