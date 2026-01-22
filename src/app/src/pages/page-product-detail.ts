@@ -664,11 +664,8 @@ export class PageProductDetail
       shadesList.length && this.selectedShadeIndex < shadesList.length
         ? this.selectedShadeIndex
         : 0;
-    const visibleShades = shadesList.slice(0, 6);
-    const remainingShades = Math.max(
-      shadesList.length - visibleShades.length,
-      0,
-    );
+    const visibleShades = shadesList;
+    const remainingShades = 0;
     const selectedShade =
       shadesList.length > 0 ? shadesList[normalizedSelectedIndex] : null;
 

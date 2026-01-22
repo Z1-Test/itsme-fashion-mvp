@@ -77,17 +77,19 @@ export class CartService {
     /**
      * Remove a product from the cart in Firestore
      * @param productId - The ID of the product to remove
+     * @param shade - Optional shade to remove specific shade of product
      * @returns Promise with the operation result
      */
-    async removeFromCart(productId: string): Promise<{ success: boolean; message: string; total?: number; itemCount?: number }> {
+    async removeFromCart(productId: string, shade?: any): Promise<{ success: boolean; message: string; total?: number; itemCount?: number }> {
         try {
             const removeFromCartFunction = httpsCallable<
-                { productId: string; anonymousUserId?: string },
+                { productId: string; shade?: any; anonymousUserId?: string },
                 { success: boolean; message: string; total?: number; itemCount?: number }
             >(this.functions, "removeFromCart");
 
             const result = await removeFromCartFunction({ 
                 productId,
+                shade,
                 anonymousUserId: getAnonymousUserId()
             });
             return result.data;

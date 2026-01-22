@@ -79,8 +79,14 @@ export const addToCart = onCall(async (request) => {
     const cartData = cartDoc.data()!;
     const items = cartData.items || [];
 
-    // Check if item already exists
-    const existingItemIndex = items.findIndex((item: any) => item.productId === productId);
+    // Check if item with same product AND shade already exists
+    const existingItemIndex = items.findIndex((item: any) => {
+      const isSameProduct = item.productId === productId;
+      const isSameShade = shade 
+        ? item.shade?.hexCode === shade.hexCode 
+        : !item.shade;
+      return isSameProduct && isSameShade;
+    });
 
     if (existingItemIndex >= 0) {
       // Update quantity of existing item
@@ -130,7 +136,7 @@ export const addToCart = onCall(async (request) => {
  * Remove a product from the user's cart
  */
 export const removeFromCart = onCall(async (request) => {
-  const { productId } = request.data;
+  const { productId, shade } = request.data;
   const anonymousUserId = request.data.anonymousUserId;
 
   if (!productId) {
@@ -157,8 +163,15 @@ export const removeFromCart = onCall(async (request) => {
   const cartData = cartDoc.data()!;
   const items = cartData.items || [];
 
-  // Filter out the item to remove
-  const filteredItems = items.filter((item: any) => item.productId !== productId);
+  // Filter out the item to remove (considering both productId and shade)
+  const filteredItems = items.filter((item: any) => {
+    const isSameProduct = item.productId === productId;
+    const isSameShade = shade 
+      ? item.shade?.hexCode === shade.hexCode 
+      : !item.shade;
+    // Keep items that are NOT the one we want to remove
+    return !(isSameProduct && isSameShade);
+  });
 
   if (filteredItems.length === items.length) {
     return { success: false, message: "Product not found in cart" };

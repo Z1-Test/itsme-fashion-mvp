@@ -294,6 +294,9 @@ export class ItsmeProductCard extends LitElement {
   @state() private isLoggedIn = false;
   @state() private cartQuantity = 0;
   @state() private selectedShadeIndex = 0;
+  
+  // Flag to skip re-checking cart status after our own update
+  private _skipNextCartCheck = false;
 
   private _boundHandleGlobalWishlist =
     this._handleGlobalWishlistToggle.bind(this);
@@ -361,6 +364,12 @@ export class ItsmeProductCard extends LitElement {
   }
 
   private async _checkCartStatus() {
+    // Skip if we just updated the cart ourselves
+    if (this._skipNextCartCheck) {
+      this._skipNextCartCheck = false;
+      return;
+    }
+    
     if (!this.product) return;
     const cartService = getCartService();
     if (!cartService) {
@@ -429,7 +438,7 @@ export class ItsmeProductCard extends LitElement {
     try {
       if (newQuantity === 0) {
         // Remove from cart
-        await cartService.removeFromCart(this.product.id);
+        await cartService.removeFromCart(this.product.id, selectedShade);
         if (showNotification) {
           const productName = (this.product as any).productName || (this.product as any).name || "Product";
           NotificationService.info(`Removed ${productName} from cart`);
@@ -448,13 +457,15 @@ export class ItsmeProductCard extends LitElement {
         } else if (delta < 0) {
           // For now, removing requires full removal since we don't have updateQuantity function
           // We need to remove and re-add with new quantity
-          await cartService.removeFromCart(this.product.id);
+          await cartService.removeFromCart(this.product.id, selectedShade);
           if (newQuantity > 0) {
             await cartService.addToCart(this.product.id, newQuantity, selectedShade);
           }
         }
       }
       this.cartQuantity = newQuantity;
+      // Skip the next cart check since we just updated it ourselves
+      this._skipNextCartCheck = true;
       window.dispatchEvent(new Event("cart-updated"));
     } catch (error) {
       console.error("Error updating cart:", error);
@@ -598,7 +609,9 @@ export class ItsmeProductCard extends LitElement {
   private _incrementQuantity(e: Event) {
     e.stopPropagation();
     e.preventDefault();
-    const productStock = (this.product as any).shades?.[0]?.stock || (this.product as any).stock || 0;
+    const shades = (this.product as any).shades || [];
+    const selectedShade = shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+    const productStock = selectedShade?.stock || (this.product as any).stock || 0;
     if (this.cartQuantity < productStock) {
       this._updateCart(this.cartQuantity + 1);
     } else {
@@ -620,6 +633,8 @@ export class ItsmeProductCard extends LitElement {
     if (!this.product?.shades) return;
     if (index < 0 || index >= this.product.shades.length) return;
     this.selectedShadeIndex = index;
+    this._checkCartStatus();
+    this.requestUpdate();
   }
 
   private _addToCart(e: Event) {
