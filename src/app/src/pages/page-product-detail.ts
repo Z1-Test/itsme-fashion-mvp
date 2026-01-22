@@ -657,20 +657,19 @@ export class PageProductDetail
 
     // Map Firestore product to expected format
     const productName = this.product.productName || "Unknown Product";
-    const productPrice = this.product.shades?.[0]?.price || 0;
-    const productStock = this.product.shades?.[0]?.stock || 0;
     const shadesList = this.product.shades || [];
     const normalizedSelectedIndex =
       shadesList.length && this.selectedShadeIndex < shadesList.length
         ? this.selectedShadeIndex
         : 0;
-    const visibleShades = shadesList.slice(0, 6);
-    const remainingShades = Math.max(
-      shadesList.length - visibleShades.length,
-      0,
-    );
+    const visibleShades = shadesList;
+    const remainingShades = 0;
     const selectedShade =
       shadesList.length > 0 ? shadesList[normalizedSelectedIndex] : null;
+    
+    // Use selected shade's stock and price
+    const productPrice = selectedShade?.price || this.product.shades?.[0]?.price || 0;
+    const productStock = selectedShade?.stock || this.product.shades?.[0]?.stock || 0;
 
     let stockStatus = html`<span class="stock-status in-stock">In Stock</span>`;
     if (productStock === 0) {
