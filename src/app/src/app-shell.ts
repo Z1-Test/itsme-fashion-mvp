@@ -1,11 +1,13 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { Router } from "@vaadin/router";
+import { isUserAdmin } from "./services/admin-guard";
 // Import design system components directly from source to ensure they're registered
 import "../../packages/design-system/src/button";
 import "../../packages/design-system/src/input";
 import "../../packages/design-system/src/product-card";
 import "../../packages/design-system/src/toast-notification";
+import "./pages/page-admin";
 
 interface MockUser {
   email: string;
@@ -14,6 +16,8 @@ interface MockUser {
 
 @customElement("app-shell")
 export class AppShell extends LitElement {
+  @state() isUserAdminFlag = false;
+  
   static styles = css`
     :host {
       display: block;
@@ -204,8 +208,20 @@ export class AppShell extends LitElement {
     const userData = localStorage.getItem("user");
     if (userData) {
       this.currentUser = JSON.parse(userData);
+      // Check if user is admin asynchronously
+      this._checkIfAdmin();
     } else {
       this.currentUser = null;
+      this.isUserAdminFlag = false;
+    }
+  }
+
+  private async _checkIfAdmin() {
+    try {
+      const isAdmin = await isUserAdmin();
+      this.isUserAdminFlag = isAdmin;
+    } catch (error) {
+      this.isUserAdminFlag = false;
     }
   }
 
@@ -225,6 +241,7 @@ export class AppShell extends LitElement {
         { path: "/profile", component: "page-profile" },
         { path: "/orders", component: "page-orders" },
         { path: "/wishlist", component: "page-wishlist" },
+        { path: "/admin", component: "page-admin" },
         { path: "(.*)", component: "page-not-found" },
       ]);
     }
@@ -239,13 +256,21 @@ export class AppShell extends LitElement {
             ${this.mobileMenuOpen ? "✕" : "☰"}
           </button>
           <nav>
-            <a href="/products">Products</a>
-            <a href="/cart">Cart</a>
-            <a href="/wishlist">Wishlist</a>
+            ${this.isUserAdminFlag ? 
+              html`<a href="/admin">Admin</a>` 
+              : html`<a href="/products">Products</a>`
+            }
+            ${!this.isUserAdminFlag ? 
+              html`
+                <a href="/cart">Cart</a>
+                <a href="/wishlist">Wishlist</a>
+              ` 
+              : ""
+            }
             ${this.currentUser
               ? html`
                   <div class="user-menu">
-                    <a href="/profile">Profile</a>
+                    ${!this.isUserAdminFlag ? html`<a href="/profile">Profile</a>` : ""}
                     <itsme-button
                       size="small"
                       @itsme-click=${this._handleLogout}
@@ -263,12 +288,17 @@ export class AppShell extends LitElement {
           </nav>
         </div>
         <div class="mobile-nav ${this.mobileMenuOpen ? "open" : ""}">
-          <a href="/products" @click=${this._closeMobileMenu}>Products</a>
-          <a href="/cart" @click=${this._closeMobileMenu}>Cart</a>
-          <a href="/wishlist" @click=${this._closeMobileMenu}>Wishlist</a>
+          ${this.isUserAdminFlag ? 
+            html`<a href="/admin" @click=${this._closeMobileMenu}>Admin</a>` 
+            : html`
+              <a href="/products" @click=${this._closeMobileMenu}>Products</a>
+              <a href="/cart" @click=${this._closeMobileMenu}>Cart</a>
+              <a href="/wishlist" @click=${this._closeMobileMenu}>Wishlist</a>
+            `
+          }
           ${this.currentUser
             ? html`
-                <a href="/profile" @click=${this._closeMobileMenu}>Profile</a>
+                ${!this.isUserAdminFlag ? html`<a href="/profile" @click=${this._closeMobileMenu}>Profile</a>` : ""}
                 <itsme-button
                   size="small"
                   @itsme-click=${this._handleLogoutMobile}
