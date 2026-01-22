@@ -5,12 +5,18 @@ import { getProductById, type Product } from "../services/catalog";
 import type { ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
+import { cart, wishlist, authService } from "../services";
+
+// THIS LOG RUNS WHEN FILE LOADS
+console.log("🚀🚀🚀 PAGE-PRODUCT-DETAIL.TS LOADED - NEW VERSION 2.0");
+console.log("🚀 Wishlist service imported:", wishlist);
+console.log("🚀 Wishlist type:", typeof wishlist);
+console.log("🚀 Wishlist methods:", wishlist ? Object.getOwnPropertyNames(Object.getPrototypeOf(wishlist)) : "NULL");
 
 @customElement("page-product-detail")
 export class PageProductDetail
   extends LitElement
-  implements BeforeEnterObserver
-{
+  implements BeforeEnterObserver {
   static styles = css`
     :host {
       display: block;
@@ -59,13 +65,14 @@ export class PageProductDetail
       position: absolute;
       top: 1rem;
       right: 1rem;
+      z-index: 100;
     }
 
     .wishlist-btn {
       width: 2.75rem;
       height: 2.75rem;
       border: none;
-      background: white;
+      background: lime; /* BRIGHT COLOR TO SEE IF BUTTON EXISTS */
       border-radius: 50%;
       cursor: pointer;
       display: flex;
@@ -75,6 +82,7 @@ export class PageProductDetail
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
       transition: transform 0.2s;
+      pointer-events: auto;
     }
 
     .wishlist-btn:hover {
@@ -359,58 +367,68 @@ export class PageProductDetail
 
   onBeforeEnter(location: RouterLocation) {
     const id = location.params.id as string;
+    console.log("🎯 PAGE LOADING - Product ID:", id);
     this._loadProduct(id);
   }
 
-  private async _loadProduct(id: string) {
+  async _loadProduct(productId: string) {
+    console.log("📦 LOADING PRODUCT:", productId);
     this.loading = true;
     try {
-      this.product = await getProductById(id);
+      this.product = await getProductById(productId);
+      console.log("✅ PRODUCT LOADED:", this.product);
       this.selectedShadeIndex = 0;
-      this._checkWishlistStatus();
+      await this._checkWishlistStatus();
       this._checkCartStatus();
     } catch (error) {
       console.error("Error loading product:", error);
       this.product = null;
     } finally {
       this.loading = false;
+      console.log("🏁 LOADING COMPLETE");
     }
   }
 
-  private _checkWishlistStatus() {
+  private async _checkWishlistStatus() {
     if (!this.product) return;
     try {
-      const wishlistData = localStorage.getItem("wishlist");
-      const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
-      if (Array.isArray(wishlistIds)) {
-        this.isInWishlist = wishlistIds.includes(this.product.id);
-      }
+      this.isInWishlist = await wishlist.isInWishlist(this.product.id);
     } catch (e) {
       console.warn("Error reading wishlist:", e);
     }
   }
 
-  private _checkCartStatus() {
+  private async _checkCartStatus() {
     if (!this.product) return;
     try {
-      const cartData = localStorage.getItem("cart");
-      const cart = cartData ? JSON.parse(cartData) : { items: [] };
+      if (true) { // authService.getCurrentUser()) {
+        // Check from service
+        const result = await cart.getCart();
+        if (result.success) {
+          const shades = this.product?.shades || [];
+          const selectedShade =
+            shades.length > 0 ? shades[this.selectedShadeIndex] : null;
 
-      const shades = this.product?.shades || [];
-      const selectedShade =
-        shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+          const existingItem = result.cart.items.find((item: any) => {
+            const isSameProduct = item.productId === this.product?.id;
+            const isSameShade = selectedShade
+              ? item.shade?.hexCode === selectedShade.hexCode
+              : !item.shade;
+            return isSameProduct && isSameShade;
+          });
 
-      const existingItem = cart.items.find((item: any) => {
-        const isSameProduct = item.productId === this.product?.id;
-        const isSameShade = selectedShade
-          ? item.selectedShade?.hexCode === selectedShade.hexCode
-          : !item.selectedShade;
-        return isSameProduct && isSameShade;
-      });
-
-      if (existingItem) {
-        this.cartQuantity = existingItem.quantity;
+          if (existingItem) {
+            this.cartQuantity = existingItem.quantity;
+          } else {
+            this.cartQuantity = 0;
+          }
+        } else {
+          this.cartQuantity = 0;
+        }
       } else {
+        // Check from localStorage - commented out
+        // const cartData = localStorage.getItem("cart");
+        // const cart = cartData ? JSON.parse(cartData) : { items: [] };
         this.cartQuantity = 0;
       }
     } catch (e) {
@@ -419,113 +437,184 @@ export class PageProductDetail
     }
   }
 
-  private _toggleWishlist() {
-    if (!this.product) return;
-
-    const wishlistData = localStorage.getItem("wishlist");
-    const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
-
-    if (this.isInWishlist) {
-      const index = wishlistIds.indexOf(this.product.id);
-      if (index > -1) {
-        wishlistIds.splice(index, 1);
-        this.isInWishlist = false;
-      }
-    } else {
-      if (!wishlistIds.includes(this.product.id)) {
-        wishlistIds.push(this.product.id);
-        this.isInWishlist = true;
-      }
-    }
-
-    localStorage.setItem("wishlist", JSON.stringify(wishlistIds));
-
-    // Dispatch event for other components
-    window.dispatchEvent(
-      new CustomEvent("itsme-wishlist-toggle", {
-        detail: { product: this.product, isInWishlist: this.isInWishlist },
-      }),
-    );
-  }
-
-  private _updateCart(quantity: number, showNotification = false) {
+  private async _toggleWishlist() {
+    console.log("🔥 WISHLIST BUTTON CLICKED!");
+    console.log("🔥 Wishlist service:", wishlist);
+    console.log("🔥 Product:", this.product);
+    
     if (!this.product) {
-      console.log("UpdateCart: No product");
+      console.log("❌ No product found");
       return;
     }
 
-    const cartData = localStorage.getItem("cart");
-    const cart = cartData ? JSON.parse(cartData) : { items: [] };
+    // Check if user is authenticated
+    const currentUser = authService.getCurrentUser();
+    console.log("👤 Current user:", currentUser);
+    
+    if (!currentUser) {
+      NotificationService.error("Please log in to use wishlist");
+      return;
+    }
 
-    const shades = this.product?.shades || [];
-    const selectedShade =
-      shades.length > 0 ? shades[this.selectedShadeIndex] : null;
-    const selectedShadeStock = selectedShade?.stock || 0;
+    try {
+      console.log("📋 Current wishlist state:", this.isInWishlist);
+      
+      if (this.isInWishlist) {
+        console.log("🗑️ Removing from wishlist:", this.product.id);
+        const result = await wishlist.removeFromWishlist(this.product.id);
+        console.log("🗑️ Remove result:", result);
+        this.isInWishlist = false;
+        NotificationService.success(
+          `Removed ${this.product.productName} from wishlist`
+        );
+      } else {
+        console.log("➕ Adding to wishlist:", this.product.id);
+        const result = await wishlist.addToWishlist(this.product.id);
+        console.log("➕ Add result:", result);
+        this.isInWishlist = true;
+        NotificationService.success(
+          `Added ${this.product.productName} to wishlist`
+        );
+      }
 
-    console.log("UpdateCart: quantity=", quantity, "selectedShadeStock=", selectedShadeStock, "shadeIndex=", this.selectedShadeIndex);
+      console.log("✅ Wishlist updated successfully");
 
-    // Only check stock when adding items (quantity > 0)
-    if (quantity > 0 && selectedShadeStock < quantity) {
-      console.log("UpdateCart: Stock check failed");
+      // Dispatch event for other components
+      window.dispatchEvent(
+        new CustomEvent("itsme-wishlist-toggle", {
+          detail: { product: this.product, isInWishlist: this.isInWishlist },
+        }),
+      );
+    } catch (error) {
+      console.error("❌ Error toggling wishlist:", error);
+      NotificationService.error("Failed to update wishlist. Please try again.");
+    }
+  }
+
+  private async _updateCart(newQuantity: number, showNotification = false) {
+    if (!this.product) return;
+
+    const productStock = this.product.shades?.[0]?.stock || 0;
+    
+    if (productStock < newQuantity) {
       NotificationService.error("Not enough stock available");
       return;
     }
 
-    const existingItemIndex = cart.items.findIndex((item: any) => {
-      const isSameProduct = item.productId === this.product?.id;
-      const isSameShade = selectedShade
-        ? item.selectedShade?.hexCode === selectedShade.hexCode
-        : !item.selectedShade;
-      return isSameProduct && isSameShade;
-    });
+    const shades = this.product?.shades || [];
+    const selectedShade =
+      shades.length > 0 ? shades[this.selectedShadeIndex] : null;
 
-    if (quantity > 0) {
-      if (existingItemIndex > -1) {
-        cart.items[existingItemIndex].quantity = quantity;
-        console.log("UpdateCart: Updated existing item quantity to", quantity);
-      } else {
-        cart.items.push({
-          productId: this.product.id,
-          product: this.product,
-          quantity: quantity,
-          price: selectedShade?.price || 0,
-          selectedShade: selectedShade,
-        });
-        console.log("UpdateCart: Added new item with quantity", quantity);
-      }
-      if (showNotification) {
-        NotificationService.success(`Added ${this.product.productName} to cart`);
+    if (true) { // authService.getCurrentUser()) {
+      // Update via service
+      try {
+        if (newQuantity === 0) {
+          // Remove from cart
+          await cart.removeFromCart(this.product.id);
+          if (showNotification) {
+            NotificationService.info(`Removed ${this.product.productName} from cart`);
+          }
+        } else {
+          // Calculate the delta (how much to add or remove)
+          const delta = newQuantity - this.cartQuantity;
+          
+          if (delta > 0) {
+            // Add items
+            await cart.addToCart(this.product.id, delta, selectedShade);
+            if (showNotification) {
+              NotificationService.success(`Added ${this.product.productName} to cart`);
+            }
+          } else if (delta < 0) {
+            // For now, removing requires full removal since we don't have updateQuantity function
+            // We need to remove and re-add with new quantity
+            await cart.removeFromCart(this.product.id);
+            if (newQuantity > 0) {
+              await cart.addToCart(this.product.id, newQuantity, selectedShade);
+            }
+          }
+        }
+        this.cartQuantity = newQuantity;
+        window.dispatchEvent(new Event("cart-updated"));
+      } catch (error) {
+        console.error("Error updating cart:", error);
+        NotificationService.error("Failed to update cart");
       }
     } else {
-      if (existingItemIndex > -1) {
-        cart.items.splice(existingItemIndex, 1);
-        console.log("UpdateCart: Removed item from cart");
-        if (showNotification) {
-          NotificationService.info(`Removed ${this.product.productName} from cart`);
-        }
-      }
+      // Not authenticated - skip cart update
+      console.warn("Cart update requires authentication");
     }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    this.cartQuantity = quantity;
-    console.log("UpdateCart: Set cartQuantity to", quantity);
-    this.requestUpdate();
-    window.dispatchEvent(new Event("cart-updated"));
   }
 
-  private _handleAddToCart() {
-    this._updateCart(1, true);
+  private async _handleAddToCart() {
+    if (!this.product) return;
+
+    try {
+      // Verify cart service is available
+      if (!cart) {
+        console.error("❌ Cart service is not available");
+        NotificationService.error("Cart service is not initialized");
+        return;
+      }
+
+      const shades = this.product?.shades || [];
+      const selectedShade =
+        shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+
+      const productStock = this.product.shades?.[0]?.stock || 0;
+      if (productStock === 0) {
+        NotificationService.error("Product is out of stock");
+        return;
+      }
+
+      console.log("🛒 Cart service:", cart);
+      console.log("🛒 Adding to cart:", { 
+        productId: this.product.id, 
+        quantity: 1, 
+        shade: selectedShade 
+      });
+
+      // Show loading notification
+      NotificationService.info("Adding to cart...");
+
+      // Call the cloud function to add 1 item to Firestore cart
+      const result = await cart.addToCart(this.product.id, 1, selectedShade);
+
+      console.log("📦 Cart service response:", result);
+
+      if (result.success) {
+        console.log("✅ Product added to cart:", result);
+        // Update local state
+        this.cartQuantity += 1;
+        // Dispatch event for other components to reload
+        window.dispatchEvent(new Event("cart-updated"));
+        NotificationService.success(result.message || "Added to cart");
+      } else {
+        console.error("Cart service returned failure:", result);
+        NotificationService.error("Failed to add to cart");
+      }
+    } catch (error: any) {
+      console.error("❌ Error adding to cart:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        stack: error?.stack
+      });
+      
+      // More specific error messages
+      if (error?.code === 'unavailable') {
+        NotificationService.error("Cannot connect to server. Please ensure Firebase emulators are running.");
+      } else if (error?.code === 'unauthenticated') {
+        NotificationService.error("Please sign in to add items to cart");
+      } else {
+        NotificationService.error(error?.message || "Error adding product to cart");
+      }
+    }
   }
 
   private _incrementQuantity() {
-    if (!this.product) {
-      console.log("No product");
-      return;
-    }
-    const shades = this.product?.shades || [];
-    const selectedShade = shades.length > 0 ? shades[this.selectedShadeIndex] : null;
-    const productStock = selectedShade?.stock || 0;
-    console.log("Increment: currentQty=", this.cartQuantity, "maxStock=", productStock, "selectedShadeIndex=", this.selectedShadeIndex);
+    if (!this.product) return;
+    const productStock = this.product.shades?.[0]?.stock || 0;
     if (this.cartQuantity < productStock) {
       this._updateCart(this.cartQuantity + 1);
     } else {
@@ -534,7 +623,6 @@ export class PageProductDetail
   }
 
   private _decrementQuantity() {
-    console.log("Decrement: currentQty=", this.cartQuantity);
     if (this.cartQuantity > 0) {
       this._updateCart(this.cartQuantity - 1);
     }
@@ -552,10 +640,11 @@ export class PageProductDetail
     if (index < 0 || index >= this.product.shades.length) return;
     this.selectedShadeIndex = index;
     this._checkCartStatus();
-    this.requestUpdate();
   }
 
   render() {
+    console.log("🎨 RENDER CALLED - Product:", this.product?.id, "Loading:", this.loading);
+    
     if (this.loading) {
       return html`<div>Loading...</div>`;
     }
@@ -580,8 +669,11 @@ export class PageProductDetail
       shadesList.length && this.selectedShadeIndex < shadesList.length
         ? this.selectedShadeIndex
         : 0;
-    const visibleShades = shadesList;
-    const remainingShades = 0;
+    const visibleShades = shadesList.slice(0, 6);
+    const remainingShades = Math.max(
+      shadesList.length - visibleShades.length,
+      0,
+    );
     const selectedShade =
       shadesList.length > 0 ? shadesList[normalizedSelectedIndex] : null;
 
@@ -603,11 +695,15 @@ export class PageProductDetail
           <img src="${this.product?.imageUrl || this.product?.url || `https://placehold.co/600x600?text=${encodeURIComponent(productName)}`}" alt="${productName}" />
           <div class="wishlist-btn-container">
             <button
+              type="button"
               class="wishlist-btn ${this.isInWishlist ? "wishlisted" : ""}"
-              @click=${this._toggleWishlist}
+              .onclick=${() => {
+                console.log("🚀🚀🚀 HEART BUTTON CLICKED VIA ONCLICK!!!");
+                this._toggleWishlist();
+              }}
               title="${this.isInWishlist
-                ? "Remove from wishlist"
-                : "Add to wishlist"}"
+        ? "Remove from wishlist"
+        : "Add to wishlist"}"
             >
               <svg
                 class="heart-icon"
@@ -631,7 +727,7 @@ export class PageProductDetail
                 >
                   ${this.product.tagline}
                 </p>`
-              : ""}
+        : ""}
           </div>
 
           <div class="price">₹${productPrice}</div>
@@ -639,51 +735,51 @@ export class PageProductDetail
           <div>${stockStatus}</div>
 
           ${shadesList.length > 0
-            ? html`
+        ? html`
                 <div class="shades">
                   <div class="shade-title">Available Shades</div>
                   <div class="shade-swatches">
                     ${visibleShades.map(
-                      (s, idx) => html`
+          (s, idx) => html`
                         <button
                           class="shade-swatch ${normalizedSelectedIndex === idx
-                            ? "selected"
-                            : ""}"
+              ? "selected"
+              : ""}"
                           style="background-color: ${s.hexCode}"
                           title=${s.shadeName}
                           @click=${() => this._selectShade(idx)}
                         >
                           ${normalizedSelectedIndex === idx
-                            ? html`<span class="shade-check">✓</span>`
-                            : ""}
+              ? html`<span class="shade-check">✓</span>`
+              : ""}
                         </button>
                       `,
-                    )}
+        )}
                     ${remainingShades > 0
-                      ? html`<span class="shade-more"
+            ? html`<span class="shade-more"
                           >+${remainingShades} more</span
                         >`
-                      : ""}
+            : ""}
                   </div>
                   ${selectedShade
-                    ? html`
+            ? html`
                         <div class="shade-meta">
                           <span class="shade-name">${selectedShade.shadeName}</span>
                           ${selectedShade.shadeCode
                             ? html`<span class="shade-code"
                                 >Shade ${selectedShade.shadeCode}</span
                               >`
-                            : ""}
+                : ""}
                         </div>
                       `
-                    : ""}
+            : ""}
                 </div>
               `
-            : ""}
+        : ""}
 
           <div class="actions">
             ${this.cartQuantity > 0
-              ? html`
+        ? html`
                   <div class="quantity-controls">
                     <button
                       class="quantity-btn"
@@ -700,7 +796,7 @@ export class PageProductDetail
                     </button>
                   </div>
                 `
-              : html`
+        : html`
                   <itsme-button
                     @itsme-click=${this._handleAddToCart}
                     ?disabled=${productStock === 0}
@@ -745,7 +841,7 @@ export class PageProductDetail
                   <p style="font-size: 0.85rem; color: #555;">${this.product.ingredients}</p>
                 </div>
               `
-            : ""}
+        : ""}
         </div>
       </div>
     `;

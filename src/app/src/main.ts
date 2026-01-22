@@ -14,6 +14,15 @@ import "./pages/page-not-found.js";
 // Import app shell
 import "./app-shell.js";
 
+// Import and expose services globally for product-card component
+import { cart, wishlist } from "./services";
+
+// Make services globally accessible
+(window as any).cartService = cart;
+(window as any).wishlistService = wishlist;
+
+console.log("🌐 Global services exposed:", { cart, wishlist });
+
 // Mount app
 const app = document.getElementById("app");
 if (app) {

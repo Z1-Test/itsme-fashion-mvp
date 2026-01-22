@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { getProductById, type Product } from "../services/catalog";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
+import { wishlist } from "../services";
 
 @customElement("page-wishlist")
 export class PageWishlist extends LitElement {
@@ -325,11 +326,9 @@ export class PageWishlist extends LitElement {
     this.loading = true;
 
     try {
-      // Load wishlist from localStorage
-      const wishlistData = localStorage.getItem("wishlist");
-      const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
+      // Load wishlist from service
+      const wishlistIds = await wishlist.getWishlist();
 
-      // Load wishlist products from Firestore
       const wishlistProducts: Product[] = [];
       for (const id of wishlistIds) {
         try {
@@ -345,30 +344,24 @@ export class PageWishlist extends LitElement {
       this.wishlistItems = wishlistProducts;
     } catch (error) {
       console.error("Error loading wishlist:", error);
+      NotificationService.error("Failed to load wishlist");
     } finally {
       this.loading = false;
     }
   }
 
-  private _handleWishlistToggle(e: CustomEvent) {
+  private async _handleWishlistToggle(e: CustomEvent) {
     const { product } = e.detail;
 
-    // Get existing wishlist from localStorage
-    const wishlistData = localStorage.getItem("wishlist");
-    const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
+    try {
+      await wishlist.removeFromWishlist(product.id);
+      NotificationService.success(`Removed ${product.name} from wishlist`);
 
-    // Remove from wishlist
-    const index = wishlistIds.indexOf(product.id);
-    if (index > -1) {
-      wishlistIds.splice(index, 1);
+      // Reload wishlist
+      this._loadWishlist();
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      NotificationService.error("Failed to remove from wishlist");
     }
-
-    // Save wishlist
-    localStorage.setItem("wishlist", JSON.stringify(wishlistIds));
-
-    // Reload wishlist
-    this._loadWishlist();
-
-    NotificationService.info(`Removed ${product.name} from wishlist`);
   }
 }

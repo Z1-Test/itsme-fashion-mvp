@@ -1,9 +1,13 @@
-import {onCall, HttpsError} from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import admin from "firebase-admin";
 
-// Initialize Firebase Admin SDK
-admin.initializeApp();
+// Initialize Firebase Admin SDK if not already initialized
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
+// Get Firebase Admin SDK instances (initialized elsewhere)
 const db = admin.firestore();
 const auth = admin.auth();
 
@@ -12,7 +16,7 @@ request body:
 {
   "data": {
     "displayName": "Jane Smith",
-    "email": "jane@example.com",
+    "email": "[EMAIL_ADDRESS]",
     "password": "securePassword123"
   }
 }
@@ -22,23 +26,23 @@ export const registerUser = onCall(async (request) => {
     const { displayName, email, password } = request.data;
 
     // Validate input
-   if (!displayName || !email || !password) {  
-      throw new HttpsError("invalid-argument", "Missing required fields: displayName, email, password.");  
-    }  
+    if (!displayName || !email || !password) {
+      throw new HttpsError("invalid-argument", "Missing required fields: displayName, email, password.");
+    }
 
-    if (typeof displayName !== "string" || displayName.trim().length === 0) {  
-      throw new HttpsError("invalid-argument", "Name must be a non-empty string.");  
-    }  
+    if (typeof displayName !== "string" || displayName.trim().length === 0) {
+      throw new HttpsError("invalid-argument", "Name must be a non-empty string.");
+    }
 
     // Use a regex for more robust email validation.  
-    const emailRegex = /^[\s\S]+@[\s\S]+\.[\s\S]+$/;  
-    if (typeof email !== "string" || !emailRegex.test(email)) {  
-      throw new HttpsError("invalid-argument", "Invalid email address.");  
-    }  
+    const emailRegex = /^[\s\S]+@[\s\S]+\.[\s\S]+$/;
+    if (typeof email !== "string" || !emailRegex.test(email)) {
+      throw new HttpsError("invalid-argument", "Invalid email address.");
+    }
 
-    if (typeof password !== "string" || password.length < 6) {  
-      throw new HttpsError("invalid-argument", "Password must be at least 6 characters long.");  
-    }  
+    if (typeof password !== "string" || password.length < 6) {
+      throw new HttpsError("invalid-argument", "Password must be at least 6 characters long.");
+    }
 
 
     // Create user in Firebase Authentication
@@ -85,34 +89,35 @@ export const registerUser = onCall(async (request) => {
     logger.error("Registration error", error);
 
     // Handle Firebase Auth errors
-    if (error instanceof HttpsError) {  
+    if (error instanceof HttpsError) {
       // This will catch HttpsErrors thrown from the validation logic.  
-      throw error;  
-    }  
+      throw error;
+    }
 
-    if (error instanceof Error) {  
-      const firebaseError = error as { code?: string; message: string };  
+    if (error instanceof Error) {
+      const firebaseError = error as { code?: string; message: string };
       // Handle Firebase Auth errors by code for robustness  
-      if (firebaseError.code) {  
-        switch (firebaseError.code) {  
-          case 'auth/email-already-exists':  
-          case 'auth/email-already-in-use':  
-            throw new HttpsError('already-exists', 'An account with this email already exists.');  
-          case 'auth/invalid-email':  
-            throw new HttpsError('invalid-argument', 'The email address is badly formatted.');  
-          case 'auth/weak-password':  
-            throw new HttpsError('invalid-argument', 'Password must be at least 6 characters long.');  
-          default:  
+      if (firebaseError.code) {
+        switch (firebaseError.code) {
+          case 'auth/email-already-exists':
+          case 'auth/email-already-in-use':
+            throw new HttpsError('already-exists', 'An account with this email already exists.');
+          case 'auth/invalid-email':
+            throw new HttpsError('invalid-argument', 'The email address is badly formatted.');
+          case 'auth/weak-password':
+            throw new HttpsError('invalid-argument', 'Password must be at least 6 characters long.');
+          default:
             // Log other Firebase errors but return a generic message to the client  
-            logger.error('Unhandled Firebase Auth error', { code: firebaseError.code, message: firebaseError.message });  
-            throw new HttpsError('internal', 'An unexpected error occurred during registration.');  
-        }  
-      }  
-    }  
+            logger.error('Unhandled Firebase Auth error', { code: firebaseError.code, message: firebaseError.message });
+            throw new HttpsError('internal', 'An unexpected error occurred during registration.');
+        }
+      }
+    }
 
     // Fallback for other types of errors  
-    throw new HttpsError("internal", "Registration failed due to an unknown error.");  
-}});
+    throw new HttpsError("internal", "Registration failed due to an unknown error.");
+  }
+});
 
 
 

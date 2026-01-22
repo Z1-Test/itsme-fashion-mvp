@@ -2,6 +2,8 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
+import { authService, cartServiceInstance } from "../services";
+import type { CartItem as ServiceCartItem, Cart } from "../services/cart";
 
 interface CartItem {
   productId: string;
@@ -410,11 +412,13 @@ export class PageCart extends LitElement {
 
   @state() private cartItems: CartItem[] = [];
 
-  connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
-    this._loadCart();
+    await this._loadCart();
 
-    // Listen for storage changes
+    // Listen for cart-updated events from other pages
+    window.addEventListener("cart-updated", () => this._loadCart());
+    // Listen for storage changes (for anonymous users)
     window.addEventListener("storage", this._loadCart.bind(this));
   }
 
@@ -551,17 +555,45 @@ export class PageCart extends LitElement {
     `;
   }
 
-  private _loadCart() {
-    const cartData = localStorage.getItem("cart");
-    if (cartData) {
-      const cart = JSON.parse(cartData);
-      this.cartItems = cart.items || [];
+  private async _loadCart() {
+    if (true) { // authService.getCurrentUser()) {
+      // Load from service
+      try {
+        const result = await cartServiceInstance.getCart();
+        console.log("🛒 Cart loaded from service:", result);
+        if (result.success) {
+          // Transform service cart items to local format
+          this.cartItems = result.cart.items.map(item => ({
+            productId: item.productId,
+            product: {
+              id: item.productId,
+              name: item.name,
+              brand: item.brand || '',
+              price: item.price,
+              imageUrl: item.imageUrl,
+            },
+            quantity: item.quantity,
+            price: item.price,
+            selectedShade: item.shade,
+          }));
+          console.log("📦 Transformed cart items:", this.cartItems);
+          this.requestUpdate();
+        } else {
+          this.cartItems = [];
+          this.requestUpdate();
+        }
+      } catch (error) {
+        console.error("❌ Error loading cart from service:", error);
+        this.cartItems = [];
+        this.requestUpdate();
+      }
     } else {
+      // Not authenticated - cart is empty
       this.cartItems = [];
     }
   }
 
-  private _updateQuantity(
+  private async _updateQuantity(
     productId: string,
     change: number,
     selectedShade?: any,
@@ -576,13 +608,27 @@ export class PageCart extends LitElement {
     if (item) {
       const newQuantity = item.quantity + change;
       if (newQuantity > 0 && newQuantity <= item.product.stock) {
-        item.quantity = newQuantity;
-        this._saveCart();
+        if (true) { // authService.getCurrentUser()) {
+          // Update via service
+          try {
+            await cartServiceInstance.addToCart(productId, newQuantity, selectedShade);
+            item.quantity = newQuantity;
+            // Reload cart to get updated data
+            await this._loadCart();
+          } catch (error) {
+            console.error("Error updating quantity:", error);
+            NotificationService.show("Error updating cart", "error");
+          }
+        } else {
+          // Update local - commented out
+          // item.quantity = newQuantity;
+          // this._saveCart();
+        }
       }
     }
   }
 
-  private _removeItem(productId: string, selectedShade?: any) {
+  private async _removeItem(productId: string, selectedShade?: any) {
     const itemToRemove = this.cartItems.find((i) => {
       const isSameProduct = i.productId === productId;
       const isSameShade = selectedShade
@@ -597,22 +643,31 @@ export class PageCart extends LitElement {
       );
     }
 
-    this.cartItems = this.cartItems.filter((i) => {
-      const isSameProduct = i.productId !== productId;
-      if (isSameProduct) return true;
-      const isSameShade = selectedShade
-        ? i.selectedShade?.hexCode === selectedShade.hexCode
-        : !i.selectedShade;
-      return !isSameShade;
-    });
-    this._saveCart();
+    if (true) { // authService.getCurrentUser()) {
+      // Remove via service
+      try {
+        await cartServiceInstance.removeFromCart(productId);
+        // Reload cart
+        await this._loadCart();
+      } catch (error) {
+        console.error("Error removing item:", error);
+        NotificationService.show("Error removing item from cart", "error");
+      }
+    } else {
+      // Remove from local - commented out
+      // this.cartItems = this.cartItems.filter((i) => {
+      //   const isSameProduct = i.productId !== productId;
+      //   if (isSameProduct) return true;
+      //   const isSameShade = selectedShade
+      //     ? i.selectedShade?.hexCode === selectedShade.hexCode
+      //     : !i.selectedShade;
+      //   return !isSameShade;
+      // });
+      // this._saveCart();
+    }
   }
 
-  private _saveCart() {
-    const cart = { items: this.cartItems };
-    localStorage.setItem("cart", JSON.stringify(cart));
-    this.requestUpdate();
-  }
+  // _saveCart removed - using cloud functions instead
 
   private _checkout() {
     window.location.href = "/checkout";

@@ -221,17 +221,11 @@ async function importCSV() {
       }
 
       const docRef = db.collection(collectionName).doc(productId);
-      
-      // Calculate total stock from all shades
-      const totalStock = productData.shades.reduce((sum, shade) => sum + shade.stock, 0);
-      
       batch.set(docRef, {
         ...productData.common,
         url: imageUrl || productData.common.githubUrl, // Use image URL as main URL, fallback to GitHub URL
         imageUrl: imageUrl, // Keep separate imageUrl field for reference
-        shades: productData.shades,
-        stock: totalStock, // Add total stock at product level for easy querying
-        updatedAt: new Date().toISOString()
+        shades: productData.shades
       });
       count++;
 

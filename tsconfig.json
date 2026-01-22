@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ES2022",
-    "lib": ["ES2020"],
+    "lib": [
+      "ES2020"
+    ],
     "outDir": "./lib",
     "rootDir": "./",
     "strict": true,
@@ -15,12 +17,24 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@services/*": ["src/services/*/src"],
-      "@packages/*": ["src/packages/*/src"]
+      "@services/*": [
+        "src/services/*/src"
+      ],
+      "@packages/*": [
+        "src/packages/*/src"
+      ]
     },
     "moduleResolution": "bundler"
   },
-  "include": ["index.ts"],
-  "exclude": ["node_modules", "dist", "coverage", "src/**", "lib"]
+  "include": [
+    "index.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "src/packages",
+    "src/app"
+  ]
 }
-
