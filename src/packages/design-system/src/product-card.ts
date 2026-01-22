@@ -479,11 +479,12 @@ export class ItsmeProductCard extends LitElement {
     // Map Firestore product fields to expected format
     const name = (this.product as any).productName || this.product.name || "Unknown Product";
     const brand = (this.product as any).brand || "It's Me";
-    const price = (this.product as any).shades?.[0]?.price || (this.product as any).price || 0;
+    const shades = (this.product as any).shades || [];
+    const selectedShade = shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+    const price = selectedShade?.price || (this.product as any).price || 0;
     const imageUrl = (this.product as any).imageUrl || `https://placehold.co/400x400?text=${encodeURIComponent(name)}`;
     const ethicalMarkers = (this.product as any).ethicalMarkers || [];
-    const stock = (this.product as any).shades?.[0]?.stock || (this.product as any).stock || 0;
-    const shades = (this.product as any).shades || [];
+    const stock = selectedShade?.stock || (this.product as any).stock || 0;
     
     const isOutOfStock = stock === 0;
     const visibleShades = (shades || []).slice(0, 4);

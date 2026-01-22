@@ -351,17 +351,12 @@ export class PageWishlist extends LitElement {
   }
 
   private async _handleWishlistToggle(e: CustomEvent) {
-    const { product } = e.detail;
+    const { product, isInWishlist } = e.detail;
 
-    try {
-      await wishlist.removeFromWishlist(product.id);
-      NotificationService.success(`Removed ${product.name} from wishlist`);
-
-      // Reload wishlist
+    // Only update local state - the product-card already made the API call
+    if (!isInWishlist) {
+      // Product was removed from wishlist, reload the list
       this._loadWishlist();
-    } catch (error) {
-      console.error("Error removing from wishlist:", error);
-      NotificationService.error("Failed to remove from wishlist");
     }
   }
 }
