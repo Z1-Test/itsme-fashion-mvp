@@ -47,3 +47,19 @@ export const removeFromWishList = onCall(async (request) => {
 
   return { success: true, message: "Product removed from wishList" };
 });
+
+export const getWishList = onCall(async (request) => {
+  const db = getFirestore();
+  const wishListSnapshot = await db.collection("wishList").get();
+
+  const items = wishListSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    productId: doc.data().productId || doc.id,
+    ...doc.data(),
+  }));
+
+  return {
+    success: true,
+    items,
+  };
+});

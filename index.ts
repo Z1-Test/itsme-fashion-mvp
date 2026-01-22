@@ -19,4 +19,4 @@ export { registerUser, saveAddress, getAddresses } from "./src/services/identity
 export { payments } from "./src/services/payments/src/index";
 
 // WishList Service
-export { addToWishList, removeFromWishList } from "./src/services/wishList/src/index";
+export { addToWishList, removeFromWishList, getWishList } from "./src/services/wishList/src/index";
