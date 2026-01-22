@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
-import { NotificationService } from "../services";
+import { NotificationService, orderService, authService, addressService } from "../services";
 
 interface CartItem {
   productId: string;
@@ -595,14 +595,25 @@ export class PageCheckout extends LitElement {
     this._loadSavedAddress();
   }
 
-  private _loadSavedAddress() {
-    const addressData = localStorage.getItem("savedAddress");
-    if (addressData) {
-      try {
-        this.savedAddress = JSON.parse(addressData);
-      } catch (e) {
-        console.error("Error parsing address:", e);
+  private async _loadSavedAddress() {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user || !user.uid) return;
+
+      const addresses = await addressService.getAddresses(user.uid);
+      if (addresses.length > 0) {
+        const address = addresses[0];
+        this.savedAddress = {
+          label: address.label || "Home",
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zip: address.zip,
+          phone: address.phone,
+        };
       }
+    } catch (error) {
+      // Silently handle error - address will remain null until user enters one
     }
   }
 
@@ -626,10 +637,31 @@ export class PageCheckout extends LitElement {
     this.editFormData = { ...this.editFormData, [field]: value };
   }
 
-  private _saveAddress() {
-    this.savedAddress = { ...this.editFormData };
-    localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
-    this.editingAddress = false;
+  private async _saveAddress() {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user || !user.uid) {
+        NotificationService.error("User not authenticated");
+        return;
+      }
+
+      this.savedAddress = { ...this.editFormData };
+      
+      // Save to Firestore via addressService
+      await addressService.saveAddress({
+        uid: user.uid,
+        street: this.savedAddress.street,
+        city: this.savedAddress.city,
+        state: this.savedAddress.state,
+        zip: this.savedAddress.zip,
+        phone: this.savedAddress.phone,
+        label: this.savedAddress.label,
+      });
+      this.editingAddress = false;
+      NotificationService.success("Address saved successfully");
+    } catch (error: any) {
+      NotificationService.error("Failed to save address");
+    }
   }
 
   render() {
@@ -913,7 +945,6 @@ export class PageCheckout extends LitElement {
         this.cartItems = [];
       }
     } catch (error) {
-      console.error("Error loading cart:", error);
       this.cartItems = [];
     }
   }
@@ -921,8 +952,13 @@ export class PageCheckout extends LitElement {
   private async _placeOrder() {
     this.processing = true;
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Check if user is authenticated
+    const firebaseUser = authService.getCurrentUser();
+    if (!firebaseUser) {
+      NotificationService.error("Please log in to place an order");
+      this.processing = false;
+      return;
+    }
 
     // Check if address is saved
     if (!this.savedAddress) {
@@ -931,53 +967,48 @@ export class PageCheckout extends LitElement {
       return;
     }
 
-    // Generate order ID
-    this.orderId = `ORD${Date.now().toString(36).toUpperCase()}`;
-
-    const subtotal = this.cartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
-    );
-    const shipping = subtotal > 500 ? 0 : 50;
-    const total = subtotal + shipping;
-
-    // Save order to localStorage
-    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-    const order = {
-      id: this.orderId,
-      orderDate: new Date().toLocaleDateString(),
-      items: this.cartItems.map((item) => ({
-        productName: item.product.name || item.productId,
-        quantity: item.quantity,
-        price: item.price * item.quantity,
-        image: item.product.imageUrl || item.product.image,
-      })),
-      paymentMethod: this.paymentMethod,
-      total: total,
-      status: "confirmed",
-      shippingAddress: {
-        street: this.savedAddress.street,
-        city: this.savedAddress.city,
-        state: this.savedAddress.state,
-        zip: this.savedAddress.zip,
-      },
-      createdAt: new Date().toISOString(),
-    };
-    orders.push(order);
-    localStorage.setItem("orders", JSON.stringify(orders));
-
-    // Clear cart using cart service
     try {
-      const cartService = (window as any).cartService;
-      if (cartService) {
-        await cartService.clearCart();
-      }
-    } catch (error) {
-      console.error("Error clearing cart:", error);
-    }
+      // Calculate totals
+      const subtotal = this.cartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0,
+      );
+      const shipping = subtotal > 500 ? 0 : 50;
+      const tax = Math.round(subtotal * 0.05 * 100) / 100; // 5% tax
+      const total = subtotal + tax + shipping;
 
-    // Show success
-    this.processing = false;
-    this.orderPlaced = true;
+      // Create order via Cloud Function
+      const result = await orderService.createOrder({
+        userId: firebaseUser.uid,
+        items: this.cartItems,
+        subtotal: subtotal,
+        tax: tax,
+        shipping: shipping,
+        total: total,
+        shippingAddress: this.savedAddress,
+        paymentMethod: this.paymentMethod,
+      });
+
+      if (result.success) {
+        this.orderId = result.orderId;
+        
+        // Clear cart
+        try {
+          const cartService = (window as any).cartService;
+          if (cartService) {
+            await cartService.clearCart();
+          }
+        } catch (error) {
+          // Silently handle cart clear error
+        }
+
+        this.orderPlaced = true;
+        NotificationService.success(`Order placed successfully! Order ID: ${this.orderId}`);
+      }
+    } catch (error: any) {
+      NotificationService.error(error.message || "Failed to place order");
+    } finally {
+      this.processing = false;
+    }
   }
 }

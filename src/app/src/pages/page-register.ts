@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { authService } from "../services";
+import { authService, NotificationService } from "../services";
 
 @customElement("page-register")
 export class PageRegister extends LitElement {
@@ -277,16 +277,19 @@ export class PageRegister extends LitElement {
         displayName: this.name,
       });
       
-      console.log("✅ Registration successful:", user);
+      // Now sign in the user automatically after registration
+      await authService.login(this.email, this.password);
       
-      // Store user info in localStorage for quick access
-      localStorage.setItem("user", JSON.stringify(user));
-
+      NotificationService.success("Account created and signed in successfully!");
+      
+      // Wait a moment for auth state to propagate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Redirect to products
       window.location.href = "/products";
     } catch (error: any) {
       this.error = error.message || "Registration failed. Please try again.";
-      console.error("Registration error:", error);
+      NotificationService.error(this.error);
     }
   }
 }

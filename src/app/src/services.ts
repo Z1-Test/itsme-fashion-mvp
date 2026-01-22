@@ -9,10 +9,8 @@ import { AuthService } from "./services/auth";
 import { CartService } from "./services/cart";
 import { WishlistService } from "./services/wishlist";
 import { AddressService } from "./services/address";
+import { OrderService } from "./services/order";
 import { NotificationService } from "@itsme/design-system";
-
-console.log("🔧 SERVICES.TS LOADED");
-console.log("🔧 Functions instance:", functions);
 
 // Initialize Auth Service
 export const authService = new AuthService(auth, functions);
@@ -21,12 +19,13 @@ export const authService = new AuthService(auth, functions);
 export const cartServiceInstance = new CartService(functions);
 
 // Initialize Wishlist Service
-console.log("🔧 Creating WishlistService instance...");
 export const wishlistServiceInstance = new WishlistService(functions);
-console.log("🔧 WishlistService instance created:", wishlistServiceInstance);
 
 // Initialize Address Service
 export const addressService = new AddressService(functions);
+
+// Initialize Order Service
+export const orderService = new OrderService(functions);
 
 // Export Notification Service
 export { NotificationService };

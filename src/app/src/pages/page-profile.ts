@@ -1,9 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
-import { addressService } from "../services";
-import { authService } from "../services";
-import { NotificationService } from "../services";
+import { addressService, authService, NotificationService, orderService } from "../services";
 import type { Address } from "../services/address";
 
 interface MockUser {
@@ -856,59 +854,54 @@ export class PageProfile extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._loadUserAndOrders();
-    this._loadAddresses();
+    // Add a small delay to ensure auth state is available
+    setTimeout(() => {
+      this._loadUserAndOrders();
+      this._loadAddresses();
+    }, 100);
   }
 
-  private _loadUserAndOrders() {
-    // Load user from localStorage
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      this.currentUser = JSON.parse(userData);
-    } else {
+  private async _loadUserAndOrders() {
+    // Get current authenticated user from Firebase Auth
+    const firebaseUser = authService.getCurrentUser();
+    
+    if (!firebaseUser) {
       // Redirect to login if not authenticated
       window.location.href = "/login";
       return;
     }
 
-    // Load orders from localStorage
-    const ordersData = localStorage.getItem("orders");
-    if (ordersData) {
-      try {
-        this.orders = JSON.parse(ordersData);
-      } catch (e) {
-        console.error("Error parsing orders:", e);
-        this.orders = [];
-      }
-    } else {
+    // Set current user
+    this.currentUser = {
+      email: firebaseUser.email || "",
+      displayName: firebaseUser.displayName || firebaseUser.email || "User",
+    };
+
+    // Load orders from Firestore for this specific user
+    try {
+      const userOrders = await orderService.getUserOrders(firebaseUser.uid);
+      
+      // Transform Firestore orders to match the component's interface
+      this.orders = userOrders.map(order => ({
+        id: order.id,
+        orderDate: new Date(order.createdAt).toLocaleDateString(),
+        total: order.total,
+        status: order.orderStatus,
+        items: order.items.map(item => ({
+          productName: item.product?.productName || item.product?.name || item.productId,
+          quantity: item.quantity,
+          price: item.price * item.quantity,
+          image: item.product?.imageUrl || item.product?.image,
+        })),
+        shippingAddress: order.shippingAddress,
+      }));
+    } catch (error: any) {
+      NotificationService.error("Failed to load orders");
       this.orders = [];
     }
 
-    // Load saved address from localStorage or use mock address
-    const addressData = localStorage.getItem("savedAddress");
-    if (addressData) {
-      try {
-        this.savedAddress = JSON.parse(addressData);
-      } catch (e) {
-        console.error("Error parsing address:", e);
-        this._initializeMockAddress();
-      }
-    } else {
-      this._initializeMockAddress();
-    }
-  }
-
-  private _initializeMockAddress() {
-    // Initialize with mock address
-    this.savedAddress = {
-      label: "Home",
-      street: "123 Fashion Street, 5th Floor",
-      city: "Mumbai",
-      state: "Maharashtra",
-      zip: "400001",
-      phone: "+91 98765 43210",
-    };
-    localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
+    // Load addresses will be called by _loadAddresses()
+    // No mock address - only user-entered addresses will be used
   }
 
   private _toggleEditAddress() {
@@ -947,9 +940,7 @@ export class PageProfile extends LitElement {
 
       this.editingAddress = false;
       this.savedAddress = { ...this.editFormData };
-      localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
     } catch (error) {
-      console.error("Error saving address:", error);
       NotificationService.error(`Error saving address: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
@@ -970,13 +961,11 @@ export class PageProfile extends LitElement {
           zip: address.zip,
           phone: address.phone,
         };
-        localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
       } else {
-        this._initializeMockAddress();
+        this.savedAddress = null;
       }
     } catch (error) {
-      console.error("Error loading addresses:", error);
-      this._initializeMockAddress();
+      this.savedAddress = null;
     }
   }
 

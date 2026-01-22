@@ -7,12 +7,6 @@ import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
 import { cart, wishlist, authService } from "../services";
 
-// THIS LOG RUNS WHEN FILE LOADS
-console.log("🚀🚀🚀 PAGE-PRODUCT-DETAIL.TS LOADED - NEW VERSION 2.0");
-console.log("🚀 Wishlist service imported:", wishlist);
-console.log("🚀 Wishlist type:", typeof wishlist);
-console.log("🚀 Wishlist methods:", wishlist ? Object.getOwnPropertyNames(Object.getPrototypeOf(wishlist)) : "NULL");
-
 @customElement("page-product-detail")
 export class PageProductDetail
   extends LitElement
@@ -372,20 +366,17 @@ export class PageProductDetail
   }
 
   async _loadProduct(productId: string) {
-    console.log("📦 LOADING PRODUCT:", productId);
     this.loading = true;
     try {
       this.product = await getProductById(productId);
-      console.log("✅ PRODUCT LOADED:", this.product);
       this.selectedShadeIndex = 0;
       await this._checkWishlistStatus();
       this._checkCartStatus();
     } catch (error) {
-      console.error("Error loading product:", error);
+      NotificationService.error("Failed to load product");
       this.product = null;
     } finally {
       this.loading = false;
-      console.log("🏁 LOADING COMPLETE");
     }
   }
 
@@ -394,7 +385,7 @@ export class PageProductDetail
     try {
       this.isInWishlist = await wishlist.isInWishlist(this.product.id);
     } catch (e) {
-      console.warn("Error reading wishlist:", e);
+      // Silently handle wishlist check errors
     }
   }
 
