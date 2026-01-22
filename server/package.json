@@ -1,0 +1,23 @@
+{
+  "name": "@itsme/remote-config-server",
+  "version": "1.0.0",
+  "description": "Remote Config Server for Firebase Emulator",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "FIREBASE_EMULATOR=true node index.js",
+    "emulator": "FIREBASE_EMULATOR=true node index.js"
+  },
+  "keywords": [
+    "firebase",
+    "remote-config",
+    "emulator"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase-admin": "^12.0.0"
+  }
+}

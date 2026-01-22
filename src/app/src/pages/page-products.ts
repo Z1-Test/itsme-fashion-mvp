@@ -9,12 +9,38 @@ import {
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
 import { wishlist } from "../services";
 import { initRemoteConfig, getVisibleCategories } from "../services/remoteconfig";
+import { remoteConfig } from "../firebase";
+import { fetchAndActivate, getValue } from "firebase/remote-config";
 
 @customElement("page-products")
 export class PageProducts extends LitElement {
   static styles = css`
     :host {
       display: block;
+    }
+
+    .sale-banner {
+      background: #FF6B6B;
+      color: #FFFFFF;
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      animation: slideDown 0.3s ease-out;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     h1 {
@@ -120,6 +146,7 @@ export class PageProducts extends LitElement {
   @state() private selectedCategory = "all";
   @state() private wishlistIds: string[] = [];
   @state() private visibleCategories: string[] = [];
+  @state() private showSaleBanner = false;
 
   async connectedCallback() {
     super.connectedCallback();
@@ -133,6 +160,7 @@ export class PageProducts extends LitElement {
 
     this._loadProducts();
     this._loadWishlist();
+    this._loadRemoteConfig();
   }
 
   render() {
@@ -145,6 +173,14 @@ export class PageProducts extends LitElement {
     }
 
     return html`
+      ${this.showSaleBanner
+        ? html`
+            <div class="sale-banner">
+              🔥 30% OFF SALE! 🔥
+            </div>
+          `
+        : ""}
+      
       <h1>Our Products</h1>
 
       <div class="filters">
@@ -248,31 +284,50 @@ export class PageProducts extends LitElement {
     e.preventDefault();
     e.stopPropagation();
     
-    const { product, isWishlisted } = e.detail;
+    const { product, isInWishlist } = e.detail;
 
-    try {
-      if (isWishlisted) {
-        const result = await wishlist.removeFromWishlist(product.id);
-        if (result.success) {
-          NotificationService.success(`Removed ${product.name} from wishlist`);
-          // Update local wishlist state
-          this.wishlistIds = this.wishlistIds.filter(id => id !== product.id);
-        } else {
-          NotificationService.error(result.message || "Failed to remove from wishlist");
-        }
-      } else {
-        const result = await wishlist.addToWishlist(product.id);
-        if (result.success) {
-          NotificationService.success(`Added ${product.name} to wishlist`);
-          // Update local wishlist state
-          this.wishlistIds = [...this.wishlistIds, product.id];
-        } else {
-          NotificationService.error(result.message || "Failed to add to wishlist");
-        }
+    // Only update local state - the product-card already made the API call
+    if (isInWishlist) {
+      // Product was added to wishlist
+      if (!this.wishlistIds.includes(product.id)) {
+        this.wishlistIds = [...this.wishlistIds, product.id];
       }
+    } else {
+      // Product was removed from wishlist
+      this.wishlistIds = this.wishlistIds.filter(id => id !== product.id);
+    }
+  }
+
+  private async _loadRemoteConfig() {
+    try {
+      // Set config settings for emulator
+      remoteConfig.settings = {
+        minimumFetchIntervalMillis: 0,
+        fetchTimeoutMillis: 0,
+      };
+
+      // Set default values - IMPORTANT: This sets the fallback
+      remoteConfig.defaultConfig = {
+        show_sale_banner: "false", // String, not boolean
+      };
+
+      // Fetch and activate
+      const activated = await fetchAndActivate(remoteConfig);
+      console.log("📡 Remote Config activated:", activated);
+      
+      // Get the value from show_sale_banner parameter
+      const showSaleBannerConfig = getValue(remoteConfig, "show_sale_banner");
+      const stringValue = showSaleBannerConfig.asString();
+      this.showSaleBanner = stringValue === "true";
+      
+      console.log("🎯 Remote Config - show_sale_banner:", {
+        rawValue: stringValue,
+        showBanner: this.showSaleBanner
+      });
     } catch (error) {
-      console.error("Error toggling wishlist:", error);
-      NotificationService.error("Failed to update wishlist");
+      console.error("❌ Error loading Remote Config:", error);
+      // Default to FALSE if config fails to load (don't show banner on error)
+      this.showSaleBanner = false;
     }
   }
 }
