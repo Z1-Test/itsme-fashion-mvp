@@ -16,12 +16,16 @@ import "./app-shell.js";
 
 // Import and expose services globally for product-card component
 import { cart, wishlist } from "./services";
+import { initializeRemoteConfigFeatures } from "./services/remote-config-usage";
 
 // Make services globally accessible
 (window as any).cartService = cart;
 (window as any).wishlistService = wishlist;
 
-
+// Initialize Remote Config on app startup
+initializeRemoteConfigFeatures().catch((error) => {
+  console.error("Failed to initialize Remote Config:", error);
+});
 
 // Mount app
 const app = document.getElementById("app");

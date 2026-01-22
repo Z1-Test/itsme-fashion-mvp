@@ -12,8 +12,17 @@ import { AddressService } from "./services/address";
 import { OrderService } from "./services/order";
 import { NotificationService } from "@itsme/design-system";
 
-// Initialize Auth Service
-export const authService = new AuthService(auth, functions);
+// Initialize Remote Config
+import { initClientRemoteConfig } from "./services/remote-config";
+
+// Initialize Remote Config first
+let remoteConfigInstance: any;
+initClientRemoteConfig().then((rc) => {
+  remoteConfigInstance = rc;
+});
+
+// Initialize Auth Service (remoteConfig will be available after initialization)
+export const authService = new AuthService(auth, functions, remoteConfigInstance);
 
 // Initialize Cart Service
 export const cartServiceInstance = new CartService(functions);
