@@ -4,8 +4,9 @@ import type { Product, ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "./notification-service";
 
-// Access cart service from global window object (set by main app)
+// Access cart and wishlist services from global window object (set by main app)
 const getCartService = () => (window as any).cartService;
+const getWishlistService = () => (window as any).wishlistService;
 
 @customElement("itsme-product-card")
 export class ItsmeProductCard extends LitElement {
@@ -397,10 +398,12 @@ export class ItsmeProductCard extends LitElement {
   }
 
   private _handleGlobalWishlistToggle(e: CustomEvent) {
-    const { product } = e.detail;
+    const { product, isInWishlist } = e.detail;
     // If this card represents the same product that was toggled elsewhere
     if (this.product && product && this.product.id === product.id) {
-      this._checkWishlistStatus();
+      console.log(`💚 GLOBAL EVENT - Updating card for product ${this.product.id} to isInWishlist: ${isInWishlist}`);
+      this.isInWishlist = isInWishlist;
+      this.requestUpdate();
     }
   }
 
@@ -478,6 +481,9 @@ export class ItsmeProductCard extends LitElement {
       (shades?.length || 0) - visibleShades.length,
       0,
     );
+
+    // Debug log
+    console.log(`💚 RENDER - Product: ${this.product.id}, isInWishlist: ${this.isInWishlist}`);
 
     return html`
       <div class="card">
@@ -635,46 +641,92 @@ export class ItsmeProductCard extends LitElement {
     window.location.href = "/checkout";
   }
 
-  private _toggleWishlist(e: Event) {
+  private async _toggleWishlist(e: Event) {
     e.stopPropagation();
     e.preventDefault();
 
-    if (!this.product) return;
+    console.log("💚 PRODUCT CARD WISHLIST CLICKED!");
+
+    if (!this.product) {
+      console.log("💚 No product");
+      return;
+    }
 
     if (!this.isLoggedIn) {
+      console.log("💚 Not logged in, redirecting");
       window.location.href = "/login";
       return;
     }
 
-    // Get existing wishlist from localStorage
-    const wishlistData = localStorage.getItem("wishlist");
-    const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
+    const wishlistService = getWishlistService();
+    console.log("💚 Wishlist service:", wishlistService);
 
-    // Toggle wishlist status
-    const index = wishlistIds.indexOf(this.product.id);
-    const productName = (this.product as any).productName || (this.product as any).name || "Product";
-    if (index > -1) {
-      // Remove from wishlist
-      wishlistIds.splice(index, 1);
-      this.isInWishlist = false;
-      NotificationService.info(`Removed ${productName} from wishlist`);
-    } else {
-      // Add to wishlist
-      wishlistIds.push(this.product.id);
-      this.isInWishlist = true;
-      NotificationService.success(`Added ${productName} to wishlist`);
+    if (!wishlistService) {
+      console.error("💚 Wishlist service not available, falling back to localStorage");
+      // Fallback to localStorage
+      const wishlistData = localStorage.getItem("wishlist");
+      const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
+      const index = wishlistIds.indexOf(this.product.id);
+      const productName = (this.product as any).productName || (this.product as any).name || "Product";
+      
+      if (index > -1) {
+        wishlistIds.splice(index, 1);
+        this.isInWishlist = false;
+        NotificationService.info(`Removed ${productName} from wishlist`);
+      } else {
+        wishlistIds.push(this.product.id);
+        this.isInWishlist = true;
+        NotificationService.success(`Added ${productName} to wishlist`);
+      }
+      
+      localStorage.setItem("wishlist", JSON.stringify(wishlistIds));
+      this.dispatchEvent(
+        new CustomEvent("itsme-wishlist-toggle", {
+          detail: { product: this.product, isInWishlist: this.isInWishlist },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      return;
     }
 
-    // Save wishlist
-    localStorage.setItem("wishlist", JSON.stringify(wishlistIds));
+    // Use wishlist service (cloud functions)
+    const productName = (this.product as any).productName || (this.product as any).name || "Product";
+    console.log("💚 Toggling wishlist for:", productName, "Current state:", this.isInWishlist);
 
-    // Dispatch event for other components to handle notifications
-    this.dispatchEvent(
-      new CustomEvent("itsme-wishlist-toggle", {
-        detail: { product: this.product, isInWishlist: this.isInWishlist },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    try {
+      if (this.isInWishlist) {
+        console.log("💚 Removing from wishlist via service");
+        await wishlistService.removeFromWishlist(this.product.id);
+        console.log("💚 Remove completed");
+        this.isInWishlist = false;
+        console.log("💚 State updated, isInWishlist:", this.isInWishlist);
+        NotificationService.info(`Removed ${productName} from wishlist`);
+        this.dispatchEvent(
+          new CustomEvent("itsme-wishlist-toggle", {
+            detail: { product: this.product, isInWishlist: false },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+      } else {
+        console.log("💚 Adding to wishlist via service");
+        await wishlistService.addToWishlist(this.product.id);
+        console.log("💚 Add completed");
+        this.isInWishlist = true;
+        console.log("💚 State updated, isInWishlist:", this.isInWishlist);
+        NotificationService.success(`Added ${productName} to wishlist`);
+        this.dispatchEvent(
+          new CustomEvent("itsme-wishlist-toggle", {
+            detail: { product: this.product, isInWishlist: true },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+      }
+    } catch (error) {
+      console.error("💚 Error toggling wishlist:", error);
+      NotificationService.error("Failed to update wishlist");
+    }
   }
 }

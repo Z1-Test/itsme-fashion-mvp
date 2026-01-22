@@ -5,7 +5,13 @@ import { getProductById, type Product } from "../services/catalog";
 import type { ProductShade } from "@itsme/shared-utils";
 import { formatCurrency } from "@itsme/shared-utils";
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
-import { cart, authService } from "../services";
+import { cart, wishlist, authService } from "../services";
+
+// THIS LOG RUNS WHEN FILE LOADS
+console.log("🚀🚀🚀 PAGE-PRODUCT-DETAIL.TS LOADED - NEW VERSION 2.0");
+console.log("🚀 Wishlist service imported:", wishlist);
+console.log("🚀 Wishlist type:", typeof wishlist);
+console.log("🚀 Wishlist methods:", wishlist ? Object.getOwnPropertyNames(Object.getPrototypeOf(wishlist)) : "NULL");
 
 @customElement("page-product-detail")
 export class PageProductDetail
@@ -59,13 +65,14 @@ export class PageProductDetail
       position: absolute;
       top: 1rem;
       right: 1rem;
+      z-index: 100;
     }
 
     .wishlist-btn {
       width: 2.75rem;
       height: 2.75rem;
       border: none;
-      background: white;
+      background: lime; /* BRIGHT COLOR TO SEE IF BUTTON EXISTS */
       border-radius: 50%;
       cursor: pointer;
       display: flex;
@@ -75,6 +82,7 @@ export class PageProductDetail
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
       transition: transform 0.2s;
+      pointer-events: auto;
     }
 
     .wishlist-btn:hover {
@@ -359,32 +367,32 @@ export class PageProductDetail
 
   onBeforeEnter(location: RouterLocation) {
     const id = location.params.id as string;
+    console.log("🎯 PAGE LOADING - Product ID:", id);
     this._loadProduct(id);
   }
 
-  private async _loadProduct(id: string) {
+  async _loadProduct(productId: string) {
+    console.log("📦 LOADING PRODUCT:", productId);
     this.loading = true;
     try {
-      this.product = await getProductById(id);
+      this.product = await getProductById(productId);
+      console.log("✅ PRODUCT LOADED:", this.product);
       this.selectedShadeIndex = 0;
-      this._checkWishlistStatus();
+      await this._checkWishlistStatus();
       this._checkCartStatus();
     } catch (error) {
       console.error("Error loading product:", error);
       this.product = null;
     } finally {
       this.loading = false;
+      console.log("🏁 LOADING COMPLETE");
     }
   }
 
-  private _checkWishlistStatus() {
+  private async _checkWishlistStatus() {
     if (!this.product) return;
     try {
-      const wishlistData = localStorage.getItem("wishlist");
-      const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
-      if (Array.isArray(wishlistIds)) {
-        this.isInWishlist = wishlistIds.includes(this.product.id);
-      }
+      this.isInWishlist = await wishlist.isInWishlist(this.product.id);
     } catch (e) {
       console.warn("Error reading wishlist:", e);
     }
@@ -429,33 +437,58 @@ export class PageProductDetail
     }
   }
 
-  private _toggleWishlist() {
-    if (!this.product) return;
-
-    const wishlistData = localStorage.getItem("wishlist");
-    const wishlistIds = wishlistData ? JSON.parse(wishlistData) : [];
-
-    if (this.isInWishlist) {
-      const index = wishlistIds.indexOf(this.product.id);
-      if (index > -1) {
-        wishlistIds.splice(index, 1);
-        this.isInWishlist = false;
-      }
-    } else {
-      if (!wishlistIds.includes(this.product.id)) {
-        wishlistIds.push(this.product.id);
-        this.isInWishlist = true;
-      }
+  private async _toggleWishlist() {
+    console.log("🔥 WISHLIST BUTTON CLICKED!");
+    console.log("🔥 Wishlist service:", wishlist);
+    console.log("🔥 Product:", this.product);
+    
+    if (!this.product) {
+      console.log("❌ No product found");
+      return;
     }
 
-    localStorage.setItem("wishlist", JSON.stringify(wishlistIds));
+    // Check if user is authenticated
+    const currentUser = authService.getCurrentUser();
+    console.log("👤 Current user:", currentUser);
+    
+    if (!currentUser) {
+      NotificationService.error("Please log in to use wishlist");
+      return;
+    }
 
-    // Dispatch event for other components
-    window.dispatchEvent(
-      new CustomEvent("itsme-wishlist-toggle", {
-        detail: { product: this.product, isInWishlist: this.isInWishlist },
-      }),
-    );
+    try {
+      console.log("📋 Current wishlist state:", this.isInWishlist);
+      
+      if (this.isInWishlist) {
+        console.log("🗑️ Removing from wishlist:", this.product.id);
+        const result = await wishlist.removeFromWishlist(this.product.id);
+        console.log("🗑️ Remove result:", result);
+        this.isInWishlist = false;
+        NotificationService.success(
+          `Removed ${this.product.productName} from wishlist`
+        );
+      } else {
+        console.log("➕ Adding to wishlist:", this.product.id);
+        const result = await wishlist.addToWishlist(this.product.id);
+        console.log("➕ Add result:", result);
+        this.isInWishlist = true;
+        NotificationService.success(
+          `Added ${this.product.productName} to wishlist`
+        );
+      }
+
+      console.log("✅ Wishlist updated successfully");
+
+      // Dispatch event for other components
+      window.dispatchEvent(
+        new CustomEvent("itsme-wishlist-toggle", {
+          detail: { product: this.product, isInWishlist: this.isInWishlist },
+        }),
+      );
+    } catch (error) {
+      console.error("❌ Error toggling wishlist:", error);
+      NotificationService.error("Failed to update wishlist. Please try again.");
+    }
   }
 
   private async _updateCart(newQuantity: number, showNotification = false) {
@@ -610,6 +643,8 @@ export class PageProductDetail
   }
 
   render() {
+    console.log("🎨 RENDER CALLED - Product:", this.product?.id, "Loading:", this.loading);
+    
     if (this.loading) {
       return html`<div>Loading...</div>`;
     }
@@ -660,8 +695,12 @@ export class PageProductDetail
           <img src="${this.product?.imageUrl || this.product?.url || `https://placehold.co/600x600?text=${encodeURIComponent(productName)}`}" alt="${productName}" />
           <div class="wishlist-btn-container">
             <button
+              type="button"
               class="wishlist-btn ${this.isInWishlist ? "wishlisted" : ""}"
-              @click=${this._toggleWishlist}
+              .onclick=${() => {
+                console.log("🚀🚀🚀 HEART BUTTON CLICKED VIA ONCLICK!!!");
+                this._toggleWishlist();
+              }}
               title="${this.isInWishlist
         ? "Remove from wishlist"
         : "Add to wishlist"}"
