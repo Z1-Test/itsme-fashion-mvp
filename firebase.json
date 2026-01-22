@@ -19,10 +19,38 @@
       }
     ]
   },
-  "functions": {
-    "source": "lib",
-    "runtime": "nodejs20"
-  },
+  "functions": [
+    {
+      "source": "lib/services/cart",
+      "codebase": "cart",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/catalog",
+      "codebase": "catalog",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/identity",
+      "codebase": "identity",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/payments",
+      "codebase": "payments",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/delivery",
+      "codebase": "delivery",
+      "runtime": "nodejs24"
+    },
+    {
+      "source": "lib/services/wishList",
+      "codebase": "wishlist",
+      "runtime": "nodejs24"
+    }
+  ],
   "storage": {
     "rules": "storage.rules"
   },
