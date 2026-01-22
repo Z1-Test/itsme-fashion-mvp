@@ -2,7 +2,6 @@ import { onCall } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import admin from "firebase-admin";
-import { getFirestore } from "firebase-admin/firestore";
 import {
   Order,
   CreateOrderRequest,
