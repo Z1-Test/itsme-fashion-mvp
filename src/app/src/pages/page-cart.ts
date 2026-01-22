@@ -607,12 +607,11 @@ export class PageCart extends LitElement {
     });
     if (item) {
       const newQuantity = item.quantity + change;
-      if (newQuantity > 0 && newQuantity <= item.product.stock) {
+      if (newQuantity > 0) {
         if (true) { // authService.getCurrentUser()) {
-          // Update via service
+          // Update via service using updateQuantity instead of addToCart
           try {
-            await cartServiceInstance.addToCart(productId, newQuantity, selectedShade);
-            item.quantity = newQuantity;
+            await cartServiceInstance.updateQuantity(productId, newQuantity);
             // Reload cart to get updated data
             await this._loadCart();
           } catch (error) {
@@ -624,6 +623,9 @@ export class PageCart extends LitElement {
           // item.quantity = newQuantity;
           // this._saveCart();
         }
+      } else if (newQuantity === 0) {
+        // Remove item if quantity reaches 0
+        await this._removeItem(productId, selectedShade);
       }
     }
   }

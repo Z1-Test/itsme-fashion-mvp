@@ -697,32 +697,42 @@ export class ItsmeProductCard extends LitElement {
     try {
       if (this.isInWishlist) {
         console.log("💚 Removing from wishlist via service");
-        await wishlistService.removeFromWishlist(this.product.id);
-        console.log("💚 Remove completed");
-        this.isInWishlist = false;
-        console.log("💚 State updated, isInWishlist:", this.isInWishlist);
-        NotificationService.info(`Removed ${productName} from wishlist`);
-        this.dispatchEvent(
-          new CustomEvent("itsme-wishlist-toggle", {
-            detail: { product: this.product, isInWishlist: false },
-            bubbles: true,
-            composed: true,
-          }),
-        );
+        const result = await wishlistService.removeFromWishlist(this.product.id);
+        console.log("💚 Remove result:", result);
+        
+        if (result.success) {
+          this.isInWishlist = false;
+          console.log("💚 State updated, isInWishlist:", this.isInWishlist);
+          NotificationService.info(`Removed ${productName} from wishlist`);
+          this.dispatchEvent(
+            new CustomEvent("itsme-wishlist-toggle", {
+              detail: { product: this.product, isInWishlist: false },
+              bubbles: true,
+              composed: true,
+            }),
+          );
+        } else {
+          NotificationService.error(result.message || "Failed to remove from wishlist");
+        }
       } else {
         console.log("💚 Adding to wishlist via service");
-        await wishlistService.addToWishlist(this.product.id);
-        console.log("💚 Add completed");
-        this.isInWishlist = true;
-        console.log("💚 State updated, isInWishlist:", this.isInWishlist);
-        NotificationService.success(`Added ${productName} to wishlist`);
-        this.dispatchEvent(
-          new CustomEvent("itsme-wishlist-toggle", {
-            detail: { product: this.product, isInWishlist: true },
-            bubbles: true,
-            composed: true,
-          }),
-        );
+        const result = await wishlistService.addToWishlist(this.product.id);
+        console.log("💚 Add result:", result);
+        
+        if (result.success) {
+          this.isInWishlist = true;
+          console.log("💚 State updated, isInWishlist:", this.isInWishlist);
+          NotificationService.success(`Added ${productName} to wishlist`);
+          this.dispatchEvent(
+            new CustomEvent("itsme-wishlist-toggle", {
+              detail: { product: this.product, isInWishlist: true },
+              bubbles: true,
+              composed: true,
+            }),
+          );
+        } else {
+          NotificationService.error(result.message || "Failed to add to wishlist");
+        }
       }
     } catch (error) {
       console.error("💚 Error toggling wishlist:", error);

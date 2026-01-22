@@ -20,6 +20,24 @@ export interface Cart {
 }
 
 /**
+ * Get or create a unique user ID for anonymous users
+ * This persists across sessions in localStorage
+ */
+function getAnonymousUserId(): string {
+  const STORAGE_KEY = "itsme_anonymous_user_id";
+  
+  let userId = localStorage.getItem(STORAGE_KEY);
+  
+  if (!userId) {
+    // Generate a unique ID: anonymous_{timestamp}_{random}
+    userId = `anonymous_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem(STORAGE_KEY, userId);
+  }
+  
+  return userId;
+}
+
+/**
  * Cart Service - handles cart operations via Firebase Cloud Functions
  */
 export class CartService {
@@ -39,11 +57,16 @@ export class CartService {
     async addToCart(productId: string, quantity: number = 1, shade?: any): Promise<{ success: boolean; message: string; total?: number; itemCount?: number }> {
         try {
             const addToCartFunction = httpsCallable<
-                { productId: string; quantity: number; shade?: any },
+                { productId: string; quantity: number; shade?: any; anonymousUserId?: string },
                 { success: boolean; message: string; total?: number; itemCount?: number }
             >(this.functions, "addToCart");
 
-            const result = await addToCartFunction({ productId, quantity, shade });
+            const result = await addToCartFunction({ 
+                productId, 
+                quantity, 
+                shade,
+                anonymousUserId: getAnonymousUserId()
+            });
             return result.data;
         } catch (error) {
             console.error("Error adding to cart:", error);
@@ -59,11 +82,14 @@ export class CartService {
     async removeFromCart(productId: string): Promise<{ success: boolean; message: string; total?: number; itemCount?: number }> {
         try {
             const removeFromCartFunction = httpsCallable<
-                { productId: string },
+                { productId: string; anonymousUserId?: string },
                 { success: boolean; message: string; total?: number; itemCount?: number }
             >(this.functions, "removeFromCart");
 
-            const result = await removeFromCartFunction({ productId });
+            const result = await removeFromCartFunction({ 
+                productId,
+                anonymousUserId: getAnonymousUserId()
+            });
             return result.data;
         } catch (error) {
             console.error("Error removing from cart:", error);
@@ -78,11 +104,13 @@ export class CartService {
     async clearCart(): Promise<{ success: boolean; message: string; total?: number; itemCount?: number }> {
         try {
             const clearCartFunction = httpsCallable<
-                Record<string, never>,
+                { anonymousUserId?: string },
                 { success: boolean; message: string; total?: number; itemCount?: number }
             >(this.functions, "clearCart");
 
-            const result = await clearCartFunction({});
+            const result = await clearCartFunction({ 
+                anonymousUserId: getAnonymousUserId()
+            });
             return result.data;
         } catch (error) {
             console.error("Error clearing cart:", error);
@@ -97,14 +125,41 @@ export class CartService {
     async getCart(): Promise<{ success: boolean; cart: Cart }> {
         try {
             const getCartFunction = httpsCallable<
-                Record<string, never>,
+                { anonymousUserId?: string },
                 { success: boolean; cart: Cart }
             >(this.functions, "getCart");
 
-            const result = await getCartFunction({});
+            const result = await getCartFunction({ 
+                anonymousUserId: getAnonymousUserId()
+            });
             return result.data;
         } catch (error) {
             console.error("Error getting cart:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update the quantity of a specific product in the cart
+     * @param productId - The ID of the product to update
+     * @param quantity - The new quantity to set
+     * @returns Promise with the operation result
+     */
+    async updateQuantity(productId: string, quantity: number): Promise<{ success: boolean; message: string; total?: number; itemCount?: number }> {
+        try {
+            const updateQuantityFunction = httpsCallable<
+                { productId: string; quantity: number; anonymousUserId?: string },
+                { success: boolean; message: string; total?: number; itemCount?: number }
+            >(this.functions, "updateCartItemQuantity");
+
+            const result = await updateQuantityFunction({ 
+                productId, 
+                quantity,
+                anonymousUserId: getAnonymousUserId()
+            });
+            return result.data;
+        } catch (error) {
+            console.error("Error updating quantity:", error);
             throw error;
         }
     }

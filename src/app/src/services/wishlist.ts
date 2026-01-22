@@ -14,6 +14,27 @@ interface WishlistResponse {
 }
 
 /**
+ * Get or create a unique user ID for anonymous users
+ * This persists across sessions in localStorage
+ */
+function getAnonymousUserId(): string {
+  const STORAGE_KEY = "itsme_anonymous_user_id";
+  
+  let userId = localStorage.getItem(STORAGE_KEY);
+  
+  if (!userId) {
+    // Generate a unique ID: anonymous_{timestamp}_{random}
+    userId = `anonymous_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem(STORAGE_KEY, userId);
+    console.log("💜 Generated new anonymous user ID:", userId);
+  } else {
+    console.log("💜 Using existing anonymous user ID:", userId);
+  }
+  
+  return userId;
+}
+
+/**
  * Wishlist Service - handles wishlist operations via Firebase Cloud Functions
  */
 export class WishlistService {
@@ -36,12 +57,15 @@ export class WishlistService {
     try {
       console.log("💜 Creating httpsCallable for addToWishList");
       const addToWishListFn = httpsCallable<
-        { productId: string },
+        { productId: string; anonymousUserId?: string },
         WishlistResponse
       >(this.functions, "addToWishList");
 
       console.log("💜 Calling cloud function addToWishList");
-      const result = await addToWishListFn({ productId });
+      const result = await addToWishListFn({ 
+        productId,
+        anonymousUserId: getAnonymousUserId()
+      });
       
       console.log("💜 Cloud function response:", result);
       return {
@@ -64,12 +88,15 @@ export class WishlistService {
     
     try {
       const removeFromWishListFn = httpsCallable<
-        { productId: string },
+        { productId: string; anonymousUserId?: string },
         WishlistResponse
       >(this.functions, "removeFromWishList");
 
       console.log("💜 Calling cloud function removeFromWishList");
-      const result = await removeFromWishListFn({ productId });
+      const result = await removeFromWishListFn({ 
+        productId,
+        anonymousUserId: getAnonymousUserId()
+      });
       
       console.log("💜 Cloud function response:", result);
       return {
@@ -89,11 +116,13 @@ export class WishlistService {
   async getWishlist(): Promise<string[]> {
     try {
       const getWishListFn = httpsCallable<
-        Record<string, never>,
+        { anonymousUserId?: string },
         WishlistResponse
       >(this.functions, "getWishList");
 
-      const result = await getWishListFn({});
+      const result = await getWishListFn({ 
+        anonymousUserId: getAnonymousUserId()
+      });
       if (result.data.success && result.data.items) {
         return result.data.items.map((item) => item.productId);
       }

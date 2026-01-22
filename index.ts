@@ -4,7 +4,7 @@ import { initializeApp } from "firebase-admin/app";
 initializeApp();
 
 // Cart Service
-export { addToCart, removeFromCart, clearCart, getCart } from "./src/services/cart/src/index";
+export { addToCart, removeFromCart, clearCart, getCart, updateCartItemQuantity } from "./src/services/cart/src/index";
 
 // Catalog Service
 export { getAllProducts, getProductsByCategory, getProductById } from "./src/services/catalog/src/index";

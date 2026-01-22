@@ -7,6 +7,7 @@ import {
 } from "../services/catalog";
 
 import { NotificationService } from "../../../packages/design-system/src/notification-service";
+import { wishlist } from "../services";
 
 @customElement("page-products")
 export class PageProducts extends LitElement {
@@ -116,10 +117,12 @@ export class PageProducts extends LitElement {
   @state() private loading = true;
   @state() private error = "";
   @state() private selectedCategory = "all";
+  @state() private wishlistIds: string[] = [];
 
   connectedCallback() {
     super.connectedCallback();
     this._loadProducts();
+    this._loadWishlist();
   }
 
   render() {
@@ -172,7 +175,11 @@ export class PageProducts extends LitElement {
               href="/product/${product.id}"
               style="text-decoration: none; color: inherit; display: block;"
             >
-              <itsme-product-card .product=${product}></itsme-product-card>
+              <itsme-product-card 
+                .product=${product}
+                .isWishlisted=${this.wishlistIds.includes(product.id)}
+                @itsme-wishlist-toggle=${this._handleWishlistToggle}
+              ></itsme-product-card>
             </a>
           `,
         )}
@@ -209,5 +216,45 @@ export class PageProducts extends LitElement {
   private async _filterByCategory(category: string) {
     this.selectedCategory = category;
     await this._loadProducts();
+  }
+
+  private async _loadWishlist() {
+    try {
+      this.wishlistIds = await wishlist.getWishlist();
+    } catch (error) {
+      console.error("Error loading wishlist:", error);
+    }
+  }
+
+  private async _handleWishlistToggle(e: CustomEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const { product, isWishlisted } = e.detail;
+
+    try {
+      if (isWishlisted) {
+        const result = await wishlist.removeFromWishlist(product.id);
+        if (result.success) {
+          NotificationService.success(`Removed ${product.name} from wishlist`);
+          // Update local wishlist state
+          this.wishlistIds = this.wishlistIds.filter(id => id !== product.id);
+        } else {
+          NotificationService.error(result.message || "Failed to remove from wishlist");
+        }
+      } else {
+        const result = await wishlist.addToWishlist(product.id);
+        if (result.success) {
+          NotificationService.success(`Added ${product.name} to wishlist`);
+          // Update local wishlist state
+          this.wishlistIds = [...this.wishlistIds, product.id];
+        } else {
+          NotificationService.error(result.message || "Failed to add to wishlist");
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error);
+      NotificationService.error("Failed to update wishlist");
+    }
   }
 }

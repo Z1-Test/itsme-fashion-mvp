@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 import { onCall } from "firebase-functions/v2/https";
+import * as logger from "firebase-functions/logger";
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {
@@ -9,92 +10,119 @@ if (!admin.apps.length) {
 
 /**
  * Add a product to the user's cart
- * Structure: carts/{userId}/items/{productId}
+ * Structure: carts/{userId} with items array
  */
 export const addToCart = onCall(async (request) => {
   const { productId, quantity = 1, shade } = request.data;
+  const anonymousUserId = request.data.anonymousUserId;
 
-  console.log("🛒 addToCart called with:", { productId, quantity, shade });
+  logger.info("🛒 addToCart called with:", { productId, quantity, shade });
 
   if (!productId) {
     throw new Error("Product ID is required");
   }
 
-  // Get userId from auth or use "guest" for testing
-  const userId = request.auth?.uid || "guest";
-  console.log("👤 User ID:", userId);
+  // Get userId from auth or use anonymous user ID from client
+  let userId = request.auth?.uid;
+  if (!userId && anonymousUserId) {
+    userId = anonymousUserId;
+  }
+  if (!userId) {
+    userId = "guest";
+  }
+  logger.info("👤 User ID:", userId);
 
   const db = getFirestore();
 
   // Fetch product details
   const productSnapshot = await db.collection("products").doc(productId).get();
-  console.log("📦 Product exists:", productSnapshot.exists);
+  logger.info("📦 Product exists:", productSnapshot.exists);
 
   if (!productSnapshot.exists) {
     throw new Error("Product not found");
   }
 
   const productData = productSnapshot.data()!;
-  console.log("📋 Product data:", productData.productName);
+  logger.info("📋 Product data:", productData.productName);
 
-  // Reference to user's cart
+  // Reference to user's cart document
   const cartRef = db.collection("carts").doc(userId);
-  const itemRef = cartRef.collection("items").doc(productId);
+  const cartDoc = await cartRef.get();
 
-  // Check if item already exists
-  const itemSnapshot = await itemRef.get();
+  const now = new Date().toISOString();
+  const itemPrice = shade?.price || productData.shades?.[0]?.price || 0;
 
-  if (itemSnapshot.exists) {
-    // Update quantity if item exists
-    const existingData = itemSnapshot.data()!;
-    const newQuantity = existingData.quantity + quantity;
-
-    await itemRef.update({
-      quantity: newQuantity,
-      updatedAt: new Date().toISOString(),
+  if (!cartDoc.exists) {
+    // Create new cart with first item
+    await cartRef.set({
+      userId,
+      total: itemPrice * quantity,
+      itemCount: 1,
+      updatedAt: now,
+      items: [
+        {
+          productId: productId,
+          name: productData.productName,
+          brand: productData.brand || null,
+          price: itemPrice,
+          quantity: quantity,
+          imageUrl: productData.imageUrl || productData.url || null,
+          shade: shade || null,
+          addedAt: now,
+        },
+      ],
     });
 
-    console.log("🔄 Updated quantity to:", newQuantity);
+    logger.info("➕ Created new cart with item");
   } else {
-    // Create new cart item
-    // Price is from the shade object, or fallback to first shade if not provided
-    const itemPrice = shade?.price || productData.shades?.[0]?.price || 0;
-    
-    const cartItem = {
-      productId: productId,
-      name: productData.productName,
-      brand: productData.brand || null,
-      price: itemPrice,
-      quantity: quantity,
-      imageUrl: productData.imageUrl || productData.url || null,
-      shade: shade || null,
-      addedAt: new Date().toISOString(),
-    };
+    // Update existing cart
+    const cartData = cartDoc.data()!;
+    const items = cartData.items || [];
 
-    await itemRef.set(cartItem);
-    console.log("➕ Added new item to cart with price:", itemPrice);
+    // Check if item already exists
+    const existingItemIndex = items.findIndex((item: any) => item.productId === productId);
+
+    if (existingItemIndex >= 0) {
+      // Update quantity of existing item
+      items[existingItemIndex].quantity += quantity;
+      items[existingItemIndex].updatedAt = now;
+      logger.info("🔄 Updated quantity to:", items[existingItemIndex].quantity);
+    } else {
+      // Add new item to array
+      items.push({
+        productId: productId,
+        name: productData.productName,
+        brand: productData.brand || null,
+        price: itemPrice,
+        quantity: quantity,
+        imageUrl: productData.imageUrl || productData.url || null,
+        shade: shade || null,
+        addedAt: now,
+      });
+      logger.info("➕ Added new item to cart");
+    }
+
+    // Calculate new total
+    const total = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+    await cartRef.update({
+      items: items,
+      total: total,
+      itemCount: items.length,
+      updatedAt: now,
+    });
+
+    logger.info("✅ Cart updated. Total:", total);
   }
 
-  // Update cart metadata
-  const itemsSnapshot = await cartRef.collection("items").get();
-  const total = itemsSnapshot.docs.reduce((sum, doc) => {
-    const data = doc.data();
-    return sum + (data.price * data.quantity);
-  }, 0);
-
-  await cartRef.set({
-    total: total,
-    updatedAt: new Date().toISOString(),
-    itemCount: itemsSnapshot.size,
-  }, { merge: true });
-
-  console.log("✅ Cart updated. Total:", total);
+  const updatedCart = await cartRef.get();
+  const updatedData = updatedCart.data()!;
 
   return {
     success: true,
     message: "Product added to cart",
-    total: total,
-    itemCount: itemsSnapshot.size,
+    total: updatedData.total,
+    itemCount: updatedData.itemCount,
   };
 });
 
@@ -103,45 +131,60 @@ export const addToCart = onCall(async (request) => {
  */
 export const removeFromCart = onCall(async (request) => {
   const { productId } = request.data;
+  const anonymousUserId = request.data.anonymousUserId;
 
   if (!productId) {
     throw new Error("Product ID is required");
   }
 
-  const userId = request.auth?.uid || "guest";
+  // Get userId from auth or use anonymous user ID from client
+  let userId = request.auth?.uid;
+  if (!userId && anonymousUserId) {
+    userId = anonymousUserId;
+  }
+  if (!userId) {
+    userId = "guest";
+  }
+
   const db = getFirestore();
-
   const cartRef = db.collection("carts").doc(userId);
-  const itemRef = cartRef.collection("items").doc(productId);
+  const cartDoc = await cartRef.get();
 
-  // Delete the item
-  await itemRef.delete();
+  if (!cartDoc.exists) {
+    return { success: false, message: "Cart not found", total: 0, itemCount: 0 };
+  }
 
-  // Update cart metadata
-  const itemsSnapshot = await cartRef.collection("items").get();
+  const cartData = cartDoc.data()!;
+  const items = cartData.items || [];
 
-  if (itemsSnapshot.empty) {
-    // Delete cart document if no items left
+  // Filter out the item to remove
+  const filteredItems = items.filter((item: any) => item.productId !== productId);
+
+  if (filteredItems.length === items.length) {
+    return { success: false, message: "Product not found in cart" };
+  }
+
+  if (filteredItems.length === 0) {
+    // Delete cart if no items left
     await cartRef.delete();
     return { success: true, message: "Cart cleared", total: 0, itemCount: 0 };
   }
 
-  const total = itemsSnapshot.docs.reduce((sum, doc) => {
-    const data = doc.data();
-    return sum + (data.price * data.quantity);
-  }, 0);
+  // Calculate new total
+  const total = filteredItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
   await cartRef.update({
+    items: filteredItems,
     total: total,
+    itemCount: filteredItems.length,
     updatedAt: new Date().toISOString(),
-    itemCount: itemsSnapshot.size,
   });
 
   return {
     success: true,
     message: "Product removed from cart",
     total: total,
-    itemCount: itemsSnapshot.size,
+    itemCount: filteredItems.length,
   };
 });
 
@@ -149,24 +192,27 @@ export const removeFromCart = onCall(async (request) => {
  * Clear all items from the user's cart
  */
 export const clearCart = onCall(async (request) => {
-  const userId = request.auth?.uid || "guest";
+  const anonymousUserId = request.data.anonymousUserId;
+
+  // Get userId from auth or use anonymous user ID from client
+  let userId = request.auth?.uid;
+  if (!userId && anonymousUserId) {
+    userId = anonymousUserId;
+  }
+  if (!userId) {
+    userId = "guest";
+  }
+
   const db = getFirestore();
-
   const cartRef = db.collection("carts").doc(userId);
-  const itemsSnapshot = await cartRef.collection("items").get();
+  const cartDoc = await cartRef.get();
 
-  if (itemsSnapshot.empty) {
+  if (!cartDoc.exists) {
     return { success: true, message: "Cart is already empty" };
   }
 
-  // Delete all items
-  const batch = db.batch();
-  itemsSnapshot.docs.forEach((doc) => {
-    batch.delete(doc.ref);
-  });
-  batch.delete(cartRef); // Delete cart metadata too
-
-  await batch.commit();
+  // Delete cart document
+  await cartRef.delete();
 
   return { success: true, message: "Cart cleared", total: 0, itemCount: 0 };
 });
@@ -175,26 +221,29 @@ export const clearCart = onCall(async (request) => {
  * Get the user's cart with all items
  */
 export const getCart = onCall(async (request) => {
-  const userId = request.auth?.uid || "guest";
+  const anonymousUserId = request.data.anonymousUserId;
+
+  // Get userId from auth or use anonymous user ID from client
+  let userId = request.auth?.uid;
+  if (!userId && anonymousUserId) {
+    userId = anonymousUserId;
+  }
+  if (!userId) {
+    userId = "guest";
+  }
+
   const db = getFirestore();
-
   const cartRef = db.collection("carts").doc(userId);
-  const cartSnapshot = await cartRef.get();
+  const cartDoc = await cartRef.get();
 
-  if (!cartSnapshot.exists) {
+  if (!cartDoc.exists) {
     return {
       success: true,
       cart: { total: 0, itemCount: 0, items: [] }
     };
   }
 
-  const cartData = cartSnapshot.data()!;
-  const itemsSnapshot = await cartRef.collection("items").get();
-
-  const items = itemsSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const cartData = cartDoc.data()!;
 
   return {
     success: true,
@@ -202,7 +251,71 @@ export const getCart = onCall(async (request) => {
       total: cartData.total || 0,
       itemCount: cartData.itemCount || 0,
       updatedAt: cartData.updatedAt,
-      items: items,
+      items: cartData.items || [],
     },
   };
 });
+
+/**
+ * Update the quantity of a specific product in the cart
+ */
+export const updateCartItemQuantity = onCall(async (request) => {
+  const { productId, quantity } = request.data;
+  const anonymousUserId = request.data.anonymousUserId;
+
+  if (!productId || quantity === undefined) {
+    throw new Error("Product ID and quantity are required");
+  }
+
+  if (quantity < 1) {
+    throw new Error("Quantity must be at least 1");
+  }
+
+  // Get userId from auth or use anonymous user ID from client
+  let userId = request.auth?.uid;
+  if (!userId && anonymousUserId) {
+    userId = anonymousUserId;
+  }
+  if (!userId) {
+    userId = "guest";
+  }
+
+  const db = getFirestore();
+  const cartRef = db.collection("carts").doc(userId);
+  const cartDoc = await cartRef.get();
+
+  if (!cartDoc.exists) {
+    return { success: false, message: "Cart not found" };
+  }
+
+  const cartData = cartDoc.data()!;
+  const items = cartData.items || [];
+
+  // Find the item to update
+  const itemIndex = items.findIndex((item: any) => item.productId === productId);
+
+  if (itemIndex === -1) {
+    return { success: false, message: "Product not found in cart" };
+  }
+
+  // Update the quantity
+  items[itemIndex].quantity = quantity;
+  items[itemIndex].updatedAt = new Date().toISOString();
+
+  // Calculate new total
+  const total = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+  await cartRef.update({
+    items: items,
+    total: total,
+    updatedAt: new Date().toISOString(),
+  });
+
+  return {
+    success: true,
+    message: "Quantity updated",
+    total: total,
+    itemCount: items.length,
+  };
+});
+
