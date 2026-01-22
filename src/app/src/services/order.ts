@@ -132,7 +132,7 @@ export class OrderService {
       const result = await getUserOrdersFn({ userId });
       const data = result.data as any;
       
-      return data.orders || [];
+      return data.data || [];
     } catch (error: any) {
       console.error("Get user orders failed:", error);
       throw new Error(error.message || "Failed to fetch orders");
