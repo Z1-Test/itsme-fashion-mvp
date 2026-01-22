@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
-import { NotificationService, orderService, authService } from "../services";
+import { NotificationService } from "../services";
 
 interface CartItem {
   productId: string;
@@ -890,85 +890,94 @@ export class PageCheckout extends LitElement {
     `;
   }
 
-  private _loadCart() {
-    const cartData = localStorage.getItem("cart");
-    if (cartData) {
-      const cart = JSON.parse(cartData);
-      this.cartItems = cart.items || [];
+  private async _loadCart() {
+    try {
+      const cartService = (window as any).cartService;
+      if (cartService) {
+        const result = await cartService.getCart();
+        if (result.success && result.cart.items) {
+          this.cartItems = result.cart.items.map((item: any) => ({
+            productId: item.productId,
+            product: {
+              name: item.name,
+              imageUrl: item.imageUrl,
+            },
+            quantity: item.quantity,
+            price: item.price,
+            selectedShade: item.shade,
+          }));
+        } else {
+          this.cartItems = [];
+        }
+      } else {
+        this.cartItems = [];
+      }
+    } catch (error) {
+      console.error("Error loading cart:", error);
+      this.cartItems = [];
     }
   }
 
   private async _placeOrder() {
     this.processing = true;
 
-    try {
-      // Check if user is logged in
-      const currentUser = authService.getCurrentUser();
-      if (!currentUser) {
-        NotificationService.error("Please log in to place an order");
-        this.processing = false;
-        return;
-      }
+    // Simulate payment processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Check if address is saved
-      if (!this.savedAddress) {
-        NotificationService.error("Please add and save your shipping address first.");
-        this.processing = false;
-        return;
-      }
-
-      // Check if cart has items
-      if (this.cartItems.length === 0) {
-        NotificationService.error("Your cart is empty");
-        this.processing = false;
-        return;
-      }
-
-      // Calculate totals
-      const subtotal = this.cartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0,
-      );
-      const tax = subtotal * 0.08; // 8% tax
-      const shipping = subtotal > 500 ? 0 : 50;
-      const total = subtotal + tax + shipping;
-
-      // Create order via Cloud Function
-      const result = await orderService.createOrder({
-        userId: currentUser.uid,
-        items: this.cartItems,
-        subtotal,
-        tax,
-        shipping,
-        total,
-        shippingAddress: {
-          street: this.savedAddress.street,
-          city: this.savedAddress.city,
-          state: this.savedAddress.state,
-          zip: this.savedAddress.zip,
-          phone: this.savedAddress.phone,
-          label: this.savedAddress.label,
-        },
-        paymentMethod: this.paymentMethod,
-      });
-
-      // Store order ID
-      this.orderId = result.orderId;
-
-      // Clear cart from localStorage
-      localStorage.removeItem("cart");
-
-      // Show success
-      NotificationService.success("Order placed successfully!");
+    // Check if address is saved
+    if (!this.savedAddress) {
+      NotificationService.error("Please add and save your shipping address first.");
       this.processing = false;
-      this.orderPlaced = true;
-
-    } catch (error: any) {
-      console.error("Order placement failed:", error);
-      NotificationService.error(
-        error.message || "Failed to place order. Please try again."
-      );
-      this.processing = false;
+      return;
     }
+
+    // Generate order ID
+    this.orderId = `ORD${Date.now().toString(36).toUpperCase()}`;
+
+    const subtotal = this.cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    const shipping = subtotal > 500 ? 0 : 50;
+    const total = subtotal + shipping;
+
+    // Save order to localStorage
+    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    const order = {
+      id: this.orderId,
+      orderDate: new Date().toLocaleDateString(),
+      items: this.cartItems.map((item) => ({
+        productName: item.product.name || item.productId,
+        quantity: item.quantity,
+        price: item.price * item.quantity,
+        image: item.product.imageUrl || item.product.image,
+      })),
+      paymentMethod: this.paymentMethod,
+      total: total,
+      status: "confirmed",
+      shippingAddress: {
+        street: this.savedAddress.street,
+        city: this.savedAddress.city,
+        state: this.savedAddress.state,
+        zip: this.savedAddress.zip,
+      },
+      createdAt: new Date().toISOString(),
+    };
+    orders.push(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // Clear cart using cart service
+    try {
+      const cartService = (window as any).cartService;
+      if (cartService) {
+        await cartService.clearCart();
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+    }
+
+    // Show success
+    this.processing = false;
+    this.orderPlaced = true;
   }
 }

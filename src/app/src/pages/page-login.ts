@@ -1,8 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { authService } from "../services";
-import { isUserAdmin } from "../services/admin-guard";
-import { NotificationService } from "../../../packages/design-system/src/notification-service";
 
 @customElement("page-login")
 export class PageLogin extends LitElement {
@@ -228,21 +226,16 @@ export class PageLogin extends LitElement {
     try {
       // Use Firebase Auth SDK for login
       const user = await authService.login(this.email, this.password);
-      NotificationService.success("Login successful!");
+      console.log("✅ Login successful:", user);
       
       // Store user info in localStorage for quick access
       localStorage.setItem("user", JSON.stringify(user));
       
-      // Check if user is admin and redirect accordingly
-      const isAdmin = await isUserAdmin();
-      if (isAdmin) {
-        window.location.href = "/admin";
-      } else {
-        window.location.href = "/products";
-      }
+      // Redirect to products
+      window.location.href = "/products";
     } catch (error: any) {
       this.error = error.message || "Login failed. Please try again.";
-      NotificationService.error(this.error);
+      console.error("Login error:", error);
     }
   }
 }

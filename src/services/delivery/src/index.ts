@@ -10,10 +10,8 @@ import {
   OrderStatus,
 } from "./types.js";
 
-// Initialize Firebase Admin if not already done
-if (!getApps().length) {
-  initializeApp();
-}
+// Start writing functions
+// https://firebase.google.com/docs/functions/typescript
 
 const db = getFirestore();
 

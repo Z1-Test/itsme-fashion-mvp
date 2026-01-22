@@ -36,8 +36,6 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "eslint": "^8.54.0",
-    "firebase-admin": "^13.6.0",
-    "firebase-functions": "^7.0.0",
     "typescript": "^5.3.0",
     "vitest": "^1.0.0"
   },

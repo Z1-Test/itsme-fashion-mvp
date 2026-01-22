@@ -1,7 +1,8 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { formatCurrency } from "@itsme/shared-utils";
-import { addressService, orderService, authService } from "../services";
+import { addressService } from "../services";
+import { authService } from "../services";
 import { NotificationService } from "../services";
 import type { Address } from "../services/address";
 
@@ -258,29 +259,6 @@ export class PageProfile extends LitElement {
 
     .btn-cancel:hover {
       background: #d1d5db;
-    }
-
-    .refresh-btn {
-      padding: 0.5rem 1rem;
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 0.85rem;
-      transition: background 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .refresh-btn:hover {
-      background: #333;
-    }
-
-    .refresh-btn:active {
-      transform: scale(0.95);
     }
 
     .profile-section-title {
@@ -882,44 +860,28 @@ export class PageProfile extends LitElement {
     this._loadAddresses();
   }
 
-  private async _loadUserAndOrders() {
-    // Get current authenticated user from Firebase Auth
-    const firebaseUser = authService.getCurrentUser();
-    
-    if (!firebaseUser) {
+  private _loadUserAndOrders() {
+    // Load user from localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      this.currentUser = JSON.parse(userData);
+    } else {
       // Redirect to login if not authenticated
       window.location.href = "/login";
       return;
     }
 
-    // Set current user
-    this.currentUser = {
-      email: firebaseUser.email || "",
-      displayName: firebaseUser.displayName || firebaseUser.email || "User",
-    };
-
-    // Load orders from Firestore for this specific user
-    try {
-      const userOrders = await orderService.getUserOrders(firebaseUser.uid);
-      
-      // Transform Firestore orders to match the component's interface
-      this.orders = userOrders.map(order => ({
-        id: order.id,
-        orderDate: new Date(order.createdAt).toLocaleDateString(),
-        total: order.total,
-        status: order.orderStatus,
-        items: order.items.map(item => ({
-          productName: item.product?.productName || item.product?.name || item.productId,
-          quantity: item.quantity,
-          price: item.price * item.quantity,
-          image: item.product?.imageUrl || item.product?.image,
-        })),
-        shippingAddress: order.shippingAddress,
-      }));
-    } catch (error) {
-      console.error("Error loading orders:", error);
+    // Load orders from localStorage
+    const ordersData = localStorage.getItem("orders");
+    if (ordersData) {
+      try {
+        this.orders = JSON.parse(ordersData);
+      } catch (e) {
+        console.error("Error parsing orders:", e);
+        this.orders = [];
+      }
+    } else {
       this.orders = [];
-      NotificationService.error("Failed to load orders");
     }
 
     // Load saved address from localStorage or use mock address
@@ -947,41 +909,6 @@ export class PageProfile extends LitElement {
       phone: "+91 98765 43210",
     };
     localStorage.setItem("savedAddress", JSON.stringify(this.savedAddress));
-  }
-
-  private async _refreshOrders() {
-    // Get current authenticated user
-    const firebaseUser = authService.getCurrentUser();
-    
-    if (!firebaseUser) {
-      NotificationService.error("Please log in to refresh orders");
-      return;
-    }
-
-    try {
-      // Fetch fresh orders from Firestore
-      const userOrders = await orderService.getUserOrders(firebaseUser.uid);
-      
-      // Transform and update orders
-      this.orders = userOrders.map(order => ({
-        id: order.id,
-        orderDate: new Date(order.createdAt).toLocaleDateString(),
-        total: order.total,
-        status: order.orderStatus,
-        items: order.items.map(item => ({
-          productName: item.product?.productName || item.product?.name || item.productId,
-          quantity: item.quantity,
-          price: item.price * item.quantity,
-          image: item.product?.imageUrl || item.product?.image,
-        })),
-        shippingAddress: order.shippingAddress,
-      }));
-      
-      NotificationService.success("Orders refreshed successfully!");
-    } catch (error) {
-      console.error("Error refreshing orders:", error);
-      NotificationService.error("Failed to refresh orders");
-    }
   }
 
   private _toggleEditAddress() {
@@ -1236,16 +1163,7 @@ export class PageProfile extends LitElement {
 
         <!-- Orders Section -->
         <div class="orders-section">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>📦 Order History</h2>
-            <button 
-              class="refresh-btn" 
-              @click=${this._refreshOrders}
-              title="Refresh orders"
-            >
-              🔄 Refresh
-            </button>
-          </div>
+          <h2>📦 Order History</h2>
 
           ${this.orders.length === 0
             ? html`
