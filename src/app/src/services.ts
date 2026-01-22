@@ -13,7 +13,7 @@ import { OrderService } from "./services/order";
 import { NotificationService } from "@itsme/design-system";
 
 // Initialize Auth Service
-export const authService = new AuthService(auth, functions, remoteConfig);
+export const authService = new AuthService(auth, functions);
 
 // Initialize Cart Service
 export const cartServiceInstance = new CartService(functions);
