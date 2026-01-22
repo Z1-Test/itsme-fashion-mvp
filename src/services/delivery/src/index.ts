@@ -1,6 +1,7 @@
 import { onCall } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
+import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 import {
   Order,
@@ -8,6 +9,11 @@ import {
   PaymentStatus,
   OrderStatus,
 } from "./types.js";
+
+// Initialize Firebase Admin SDK (ensure default app exists)
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
