@@ -1,1 +1,54 @@
-{}
+{
+  "parameters": {
+    "enable_category_filter": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "description": "Enable category filtering and show sale banner",
+      "valueType": "BOOLEAN"
+    },
+    "show_sale_banner": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "description": "Enable or disable the 30% sale banner",
+      "valueType": "BOOLEAN"
+    },
+    "sale_banner_text": {
+      "defaultValue": {
+        "value": "30% OFF Everything - Limited Time!"
+      },
+      "description": "Text to display in the sale banner",
+      "valueType": "STRING"
+    },
+    "sale_banner_discount": {
+      "defaultValue": {
+        "value": "30"
+      },
+      "description": "Discount percentage to display in the badge",
+      "valueType": "STRING"
+    },
+    "sale_banner_background": {
+      "defaultValue": {
+        "value": "#FF6B6B"
+      },
+      "description": "Background color of the sale banner (hex code)",
+      "valueType": "STRING"
+    },
+    "sale_banner_text_color": {
+      "defaultValue": {
+        "value": "#FFFFFF"
+      },
+      "description": "Text color of the sale banner (hex code)",
+      "valueType": "STRING"
+    }
+  },
+  "version": {
+    "versionNumber": "1",
+    "updateTime": "2026-01-22T00:00:00Z",
+    "updateUser": {
+      "email": "admin@itsme.fashion"
+    },
+    "description": "Remote Config with sale banner and category filter"
+  }
+}
