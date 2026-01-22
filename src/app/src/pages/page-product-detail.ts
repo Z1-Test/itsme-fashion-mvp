@@ -449,12 +449,8 @@ export class PageProductDetail
   }
 
   private _updateCart(quantity: number, showNotification = false) {
-    if (!this.product) return;
-
-    const productStock = this.product.shades?.[0]?.stock || 0;
-    
-    if (productStock < quantity) {
-      NotificationService.error("Not enough stock available");
+    if (!this.product) {
+      console.log("UpdateCart: No product");
       return;
     }
 
@@ -464,6 +460,16 @@ export class PageProductDetail
     const shades = this.product?.shades || [];
     const selectedShade =
       shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+    const selectedShadeStock = selectedShade?.stock || 0;
+
+    console.log("UpdateCart: quantity=", quantity, "selectedShadeStock=", selectedShadeStock, "shadeIndex=", this.selectedShadeIndex);
+
+    // Only check stock when adding items (quantity > 0)
+    if (quantity > 0 && selectedShadeStock < quantity) {
+      console.log("UpdateCart: Stock check failed");
+      NotificationService.error("Not enough stock available");
+      return;
+    }
 
     const existingItemIndex = cart.items.findIndex((item: any) => {
       const isSameProduct = item.productId === this.product?.id;
@@ -476,14 +482,16 @@ export class PageProductDetail
     if (quantity > 0) {
       if (existingItemIndex > -1) {
         cart.items[existingItemIndex].quantity = quantity;
+        console.log("UpdateCart: Updated existing item quantity to", quantity);
       } else {
         cart.items.push({
           productId: this.product.id,
           product: this.product,
           quantity: quantity,
-          price: this.product.shades?.[0]?.price || 0,
+          price: selectedShade?.price || 0,
           selectedShade: selectedShade,
         });
+        console.log("UpdateCart: Added new item with quantity", quantity);
       }
       if (showNotification) {
         NotificationService.success(`Added ${this.product.productName} to cart`);
@@ -491,6 +499,7 @@ export class PageProductDetail
     } else {
       if (existingItemIndex > -1) {
         cart.items.splice(existingItemIndex, 1);
+        console.log("UpdateCart: Removed item from cart");
         if (showNotification) {
           NotificationService.info(`Removed ${this.product.productName} from cart`);
         }
@@ -499,6 +508,8 @@ export class PageProductDetail
 
     localStorage.setItem("cart", JSON.stringify(cart));
     this.cartQuantity = quantity;
+    console.log("UpdateCart: Set cartQuantity to", quantity);
+    this.requestUpdate();
     window.dispatchEvent(new Event("cart-updated"));
   }
 
@@ -507,8 +518,14 @@ export class PageProductDetail
   }
 
   private _incrementQuantity() {
-    if (!this.product) return;
-    const productStock = this.product.shades?.[0]?.stock || 0;
+    if (!this.product) {
+      console.log("No product");
+      return;
+    }
+    const shades = this.product?.shades || [];
+    const selectedShade = shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+    const productStock = selectedShade?.stock || 0;
+    console.log("Increment: currentQty=", this.cartQuantity, "maxStock=", productStock, "selectedShadeIndex=", this.selectedShadeIndex);
     if (this.cartQuantity < productStock) {
       this._updateCart(this.cartQuantity + 1);
     } else {
@@ -517,6 +534,7 @@ export class PageProductDetail
   }
 
   private _decrementQuantity() {
+    console.log("Decrement: currentQty=", this.cartQuantity);
     if (this.cartQuantity > 0) {
       this._updateCart(this.cartQuantity - 1);
     }
@@ -534,6 +552,7 @@ export class PageProductDetail
     if (index < 0 || index >= this.product.shades.length) return;
     this.selectedShadeIndex = index;
     this._checkCartStatus();
+    this.requestUpdate();
   }
 
   render() {
@@ -561,11 +580,8 @@ export class PageProductDetail
       shadesList.length && this.selectedShadeIndex < shadesList.length
         ? this.selectedShadeIndex
         : 0;
-    const visibleShades = shadesList.slice(0, 6);
-    const remainingShades = Math.max(
-      shadesList.length - visibleShades.length,
-      0,
-    );
+    const visibleShades = shadesList;
+    const remainingShades = 0;
     const selectedShade =
       shadesList.length > 0 ? shadesList[normalizedSelectedIndex] : null;
 
