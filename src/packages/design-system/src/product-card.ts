@@ -361,9 +361,17 @@ export class ItsmeProductCard extends LitElement {
     try {
       const cartData = localStorage.getItem("cart");
       const cart = cartData ? JSON.parse(cartData) : { items: [] };
-      const existingItem = cart.items.find(
-        (item: any) => item.productId === this.product?.id,
-      );
+      const selectedShade =
+        this.product.shades && this.product.shades.length > 0
+          ? this.product.shades[this.selectedShadeIndex]
+          : null;
+      const existingItem = cart.items.find((item: any) => {
+        const isSameProduct = item.productId === this.product?.id;
+        const isSameShade = selectedShade
+          ? item.selectedShade?.hexCode === selectedShade.hexCode
+          : !item.selectedShade;
+        return isSameProduct && isSameShade;
+      });
       this.cartQuantity = existingItem ? existingItem.quantity : 0;
     } catch (e) {
       this.cartQuantity = 0;
@@ -381,11 +389,6 @@ export class ItsmeProductCard extends LitElement {
   private _updateCart(quantity: number, showNotification = false) {
     if (!this.product) return;
 
-    if (this.product.stock < quantity) {
-      NotificationService.error("Not enough stock available");
-      return;
-    }
-
     const cartData = localStorage.getItem("cart");
     const cart = cartData ? JSON.parse(cartData) : { items: [] };
 
@@ -393,6 +396,14 @@ export class ItsmeProductCard extends LitElement {
       this.product.shades && this.product.shades.length > 0
         ? this.product.shades[this.selectedShadeIndex]
         : null;
+    
+    const selectedShadeStock = selectedShade?.stock || (this.product as any).stock || 0;
+
+    // Only check stock when adding items (quantity > 0)
+    if (quantity > 0 && selectedShadeStock < quantity) {
+      NotificationService.error("Not enough stock available");
+      return;
+    }
 
     const existingItemIndex = cart.items.findIndex((item: any) => {
       const isSameProduct = item.productId === this.product?.id;
@@ -410,7 +421,7 @@ export class ItsmeProductCard extends LitElement {
           productId: this.product.id,
           product: this.product,
           quantity: quantity,
-          price: (this.product as any).shades?.[0]?.price || (this.product as any).price || 0,
+          price: (selectedShade as any)?.price || (this.product as any).price || 0,
           selectedShade: selectedShade,
         });
       }
@@ -569,7 +580,9 @@ export class ItsmeProductCard extends LitElement {
   private _incrementQuantity(e: Event) {
     e.stopPropagation();
     e.preventDefault();
-    const productStock = (this.product as any).shades?.[0]?.stock || (this.product as any).stock || 0;
+    const shades = (this.product as any).shades || [];
+    const selectedShade = shades.length > 0 ? shades[this.selectedShadeIndex] : null;
+    const productStock = selectedShade?.stock || (this.product as any).stock || 0;
     if (this.cartQuantity < productStock) {
       this._updateCart(this.cartQuantity + 1);
     } else {
@@ -581,7 +594,8 @@ export class ItsmeProductCard extends LitElement {
     e.stopPropagation();
     e.preventDefault();
     if (this.cartQuantity > 0) {
-      this._updateCart(this.cartQuantity - 1);
+      const newQuantity = this.cartQuantity - 1;
+      this._updateCart(newQuantity, newQuantity === 0);
     }
   }
 
@@ -591,6 +605,8 @@ export class ItsmeProductCard extends LitElement {
     if (!this.product?.shades) return;
     if (index < 0 || index >= this.product.shades.length) return;
     this.selectedShadeIndex = index;
+    this._checkCartStatus();
+    this.requestUpdate();
   }
 
   private _addToCart(e: Event) {
